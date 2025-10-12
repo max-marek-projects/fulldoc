@@ -189,7 +189,7 @@ class GoogleDocstringParser(DocstringParser):
     class _Patterns(DocstringParser._Patterns):
         """Patterns for google docstring style."""
 
-        RETURN = re.compile(r'(?<=(Returns|Yields):\n)\s+(?:(?P<type>\w+): )?(?P<description>[\s\S]*?)(?=\n\S|$)')
+        RETURN = re.compile(r'(?=(Returns|Yields):\n)\s+(?:(?P<type>\w+): )?(?P<description>[\s\S]*?)(?=\n\S|$)')
         ARGS_SECTION = re.compile(r'(?<=Args:\n)([\s\S]*?)(?=\n\S|$)')
         ARG = re.compile(
             r'(?:^|\n[ \t]*)(?P<name>\**\w+?)(?:[ ]*\((?P<type>.+?)?\))?(?:[ ]*:[ ]*)'

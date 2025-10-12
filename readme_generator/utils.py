@@ -17,7 +17,7 @@ class Singleton(ABCMeta, Generic[ClassObject]):
     Works only with current class, each child class will be separated singleton.
     """
 
-    _instances: dict['Singleton', ClassObject] = {}
+    _instances: dict[tuple['Singleton', Any], ClassObject] = {}
 
     def __call__(cls, *args: Any, **kwargs: Any) -> ClassObject:
         """Get singleton instance or create one.
@@ -29,5 +29,5 @@ class Singleton(ABCMeta, Generic[ClassObject]):
             Class object previously created or created now.
         """
         if cls not in cls._instances:
-            cls._instances[cls] = super().__call__(*args, **kwargs)
-        return cls._instances[cls]
+            cls._instances[(cls, args[0])] = super().__call__(*args, **kwargs)
+        return cls._instances[(cls, args[0])]
