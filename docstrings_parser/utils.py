@@ -3,10 +3,10 @@
 from abc import ABCMeta
 from typing import Any, Generic, TypeVar
 
-ClassObject = TypeVar('ClassObject')
+ClassEntity = TypeVar('ClassEntity')
 
 
-class Singleton(ABCMeta, Generic[ClassObject]):
+class Singleton(ABCMeta, Generic[ClassEntity]):
     """Metaclass for creating singleton.
 
     Usage:
@@ -17,16 +17,16 @@ class Singleton(ABCMeta, Generic[ClassObject]):
     Works only with current class, each child class will be separated singleton.
     """
 
-    _instances: dict[tuple['Singleton', Any], ClassObject] = {}
+    _instances: dict[tuple['Singleton', Any], ClassEntity] = {}
 
-    def __call__(cls, *args: Any, **kwargs: Any) -> ClassObject:
+    def __call__(cls, *args: Any, **kwargs: Any) -> ClassEntity:
         """Get singleton instance or create one.
 
         Args:
             cls: class with singleton functionality.
 
         Returns:
-            Class object previously created or created now.
+            Class entity created previously or now.
         """
         if cls not in cls._instances:
             cls._instances[(cls, args[0])] = super().__call__(*args, **kwargs)

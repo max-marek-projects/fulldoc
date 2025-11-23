@@ -1,15 +1,15 @@
 """Python modules parsing."""
 
-from ast import Module, parse
+from ast import Module, parse, stmt, Import, ImportFrom
 from os import path
 from pathlib import Path
 from typing import final
 
-from .objects import ObjectParser
+from .entities import EntityParser
 
 
 @final
-class ModuleParser(ObjectParser[Module]):
+class ModuleParser(EntityParser[Module]):
     """Parser for python modules."""
 
     TITLE = 'Module'
@@ -33,3 +33,15 @@ class ModuleParser(ObjectParser[Module]):
             Module name based on module path.
         """
         return str(self._path.replace('/', '.').replace('\\', '.'))
+
+    def _parse_node(self, node: stmt) -> None:
+        """Parse single node.
+
+        Args:
+            node: single node.
+        """
+        super()._parse_node(node)
+        if isinstance(node, Import):
+            ...
+        if isinstance(node, ImportFrom):
+            ...

@@ -81,7 +81,7 @@ class DocstringParser(ABC):
         """Initialize docstring parser.
 
         Args:
-            docstring: docstring data from any python object.
+            docstring: docstring data from any python entity.
         """
         self._description = cleandoc(docstring)
         # split docstring title and description

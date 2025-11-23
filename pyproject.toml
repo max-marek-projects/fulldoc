@@ -1,12 +1,12 @@
 [project]
-name = 'readme-generator'
-version = '0.0.2.a1'
+name = 'docstrings-parser'
+version = '0.0.2.a2'
 authors = [
     {name = 'Maksim Ermoshin', email = 'maksim_ermoshin@mail.ru'},
 ]
-description = 'Library for automatic readme generation and docstrings check'
+description = 'Library for automatic docstrings check and readme generation'
 readme = 'README.md'
-requires-python = '>=3.10'
+requires-python = '>=3.14'
 dependencies = [
     'importlib_metadata',
     'pandas',

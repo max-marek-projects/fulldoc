@@ -14,7 +14,7 @@ class DocstringNotFoundException(ReadmeGeneratorException):
 
 
 class NameNotFoundException(ReadmeGeneratorException):
-    """Exception raised when object name is not found."""
+    """Exception raised when entity name is not found."""
 
     pass
 

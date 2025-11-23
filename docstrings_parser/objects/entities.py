@@ -1,7 +1,7 @@
 """Any python object parsing."""
 
 from abc import ABC, abstractmethod
-from ast import ClassDef, Constant, Expr, FunctionDef, Module
+from ast import ClassDef, Constant, Expr, FunctionDef, Module, stmt
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Generic, TypeVar
 
@@ -16,60 +16,70 @@ if TYPE_CHECKING:
     from .module import ModuleParser
 
 
-ObjectData = TypeVar('ObjectData', bound=ClassDef | FunctionDef | Module)
+EntityData = TypeVar('EntityData', bound=ClassDef | FunctionDef | Module)
 
 
 @dataclass
-class ObjectParser(Generic[ObjectData], ABC, metaclass=Singleton):
-    """Parser for any python-object."""
+class EntityParser(Generic[EntityData], ABC, metaclass=Singleton):
+    """Parser for any python entity."""
 
     @property
     @abstractmethod
     def TITLE(self) -> str:
-        """Title for current object type."""
+        """Title for current entity."""
         ...
 
-    _data: ObjectData
+    _data: EntityData
     _source_code: str
     _start_line_number: int
-    _parent: 'ObjectParser | None'
+    _parent: 'EntityParser | None'
 
     def __post_init__(self) -> None:
-        """Initialize python-object parser."""
+        """Initialize python entity parser."""
         self._logger = logger
         self._parse_nodes()
 
     def _parse_nodes(self) -> None:
         """Parse all nodes."""
+        self._classes: list['ClassParser'] = []
+        self._functions: list['FunctionParser'] = []
+
+        for node in self._data.body:
+            self._parse_node(node)
+
+    def _parse_node(self, node: stmt) -> None:
+        """Parse single node.
+
+        Args:
+            node: single node of current entity body.
+        """
         from .classes import ClassParser
         from .functions import FunctionParser
 
-        self._classes: list[ClassParser] = []
-        self._functions: list[FunctionParser] = []
-
-        for node in self._data.body:
-            if isinstance(node, ClassDef):
-                self._classes.append(
-                    ClassParser(
-                        node,
-                        self._source_code,
-                        node.lineno + self.start_line_number,
-                        self,
-                    ),
-                )
-            if isinstance(node, FunctionDef):
-                self._functions.append(
-                    FunctionParser(
-                        node,
-                        self._source_code,
-                        node.lineno + self.start_line_number,
-                        self,
-                    ),
-                )
+        if isinstance(node, ClassDef):
+            self._classes.append(
+                ClassParser(
+                    node,
+                    self._source_code,
+                    node.lineno + self.start_line_number,
+                    self,
+                ),
+            )
+            return
+        if isinstance(node, FunctionDef):
+            self._functions.append(
+                FunctionParser(
+                    node,
+                    self._source_code,
+                    node.lineno + self.start_line_number,
+                    self,
+                ),
+            )
+            return
 
     @property
     def docstring(self) -> DocstringParser:
-        """Docstring parser for current python object.
+        """Docstring parser for current python entity.
 
         Returns:
             Docstring parser with text data from current class.
@@ -124,47 +134,47 @@ class ObjectParser(Generic[ObjectData], ABC, metaclass=Singleton):
         """Module containing current python item.
 
         Returns:
-            Module parser which contains current object globally.
+            Module parser which contains current entity globally.
         """
         from .module import ModuleParser
 
-        current_item: ObjectParser = self
+        current_item: EntityParser = self
         while current_item._parent:
             current_item = current_item._parent
         if not isinstance(current_item, ModuleParser):
-            raise UnknownSituationOccured('Last parent object is not module')
+            raise UnknownSituationOccured('Last parent entity is not module')
         return current_item
 
     @property
     @abstractmethod
     def name(self) -> str:
-        """Name of current object.
+        """Name of current entity.
 
         Returns:
-            Name of current object based on its type.
+            Name of current entity based on its type.
         """
         ...
 
     def __repr__(self) -> str:
-        """Get string representation for current object.
+        """Get string representation for current entity.
 
         Returns:
-            Object type with its full name.
+            Entity type with its full name.
         """
         return f'{self.TITLE} "{self.name}"'
 
 
-ObjectNameData = TypeVar('ObjectNameData', bound=ClassDef | FunctionDef)
+EntityNameData = TypeVar('EntityNameData', bound=ClassDef | FunctionDef)
 
 
-class ObjectNameParser(ObjectParser[ObjectNameData], ABC):
-    """Parser for python functions with name."""
+class EntityNameParser(EntityParser[EntityNameData], ABC):
+    """Parser for python entities with name."""
 
     @property
     def name(self) -> str:
-        """Name of current object.
+        """Name of current entity.
 
         Returns:
-            Name of current object based on its type.
+            Name of current entity based on its type.
         """
         return self._data.name
