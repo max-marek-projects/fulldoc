@@ -17,3 +17,9 @@ class NameNotFoundException(ReadmeGeneratorException):
     """Exception raised when object name is not found."""
 
     pass
+
+
+class UnknownSituationOccured(ReadmeGeneratorException):
+    """Exception raised when occured unknown situation."""
+
+    pass

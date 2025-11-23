@@ -189,18 +189,18 @@ class GoogleDocstringParser(DocstringParser):
     class _Patterns(DocstringParser._Patterns):
         """Patterns for google docstring style."""
 
-        RETURN = re.compile(r'(?=(Returns|Yields):\n)\s+(?:(?P<type>\w+): )?(?P<description>[\s\S]*?)(?=\n\S|$)')
-        ARGS_SECTION = re.compile(r'(?<=Args:\n)([\s\S]*?)(?=\n\S|$)')
+        RETURN = re.compile(r'(Returns|Yields):\n\s+(?:(?P<type>\w+): )?(?P<description>[\s\S]*?)(\n\S|$)')
+        ARGS_SECTION = re.compile(r'Args:\n([\s\S]*?)(\n\S|$)')
         ARG = re.compile(
             r'(?:^|\n[ \t]*)(?P<name>\**\w+?)(?:[ ]*\((?P<type>.+?)?\))?(?:[ ]*:[ ]*)'
-            r'(?P<description>[\s\S]*?)(?=\n\S|$)',
+            r'(?P<description>[\s\S]*?)(\n\S|$)',
             re.DOTALL,
         )
-        ATTR_SECTION = re.compile(r'(?<=Attributes:\n)([\s\S]*?)(?=\n\S|$)')
+        ATTR_SECTION = re.compile(r'Attributes:\n([\s\S]*?)(\n\S|$)')
         ATTR = ARG
-        RAISE_SECTION = re.compile(r'(?<=Raises:\n)\s+(\w+)(?: \((.+)\))?: ([\s\S]*?)(?=\n\S|$)')
+        RAISE_SECTION = re.compile(r'Raises:\n\s+(\w+)(?: \((.+)\))?: ([\s\S]*?)(\n\S|$)')
         RAISE = re.compile(
-            r'(?:^|\n[ \t]*)(?P<type>\w+?)(?:[ ]*:[ ]*)(?P<description>[\s\S]*?)(?=\n\S|$)',
+            r'(?:^|\n[ \t]*)(?P<type>\w+?)(?:[ ]*:[ ]*)(?P<description>[\s\S]*?)(\n\S|$)',
             re.DOTALL,
         )
         ANY_SIGN = re.compile(r'^(Attributes|Raises|Args|Returns|Yields):\n')

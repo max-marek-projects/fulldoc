@@ -138,3 +138,7 @@ dmypy.json
 .history/
 
 .mypy_cache
+
+
+# Data
+temp/

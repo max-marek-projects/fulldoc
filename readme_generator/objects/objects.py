@@ -1,22 +1,25 @@
 """Any python object parsing."""
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterator
-from inspect import isfunction
+from ast import ClassDef, Constant, Expr, FunctionDef, Module
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Generic, TypeVar
 
-from ..exceptions import DocstringNotFoundException, NameNotFoundException
+from ..exceptions import DocstringNotFoundException, UnknownSituationOccured
 from ..logger import logger
 from ..parsers import DocstringParser
 from ..utils import Singleton
 
 if TYPE_CHECKING:
     from .classes import ClassParser
-    from .functions import FunctionParserBasic
+    from .functions import FunctionParser
+    from .module import ModuleParser
 
-ObjectData = TypeVar('ObjectData')
+
+ObjectData = TypeVar('ObjectData', bound=ClassDef | FunctionDef | Module)
 
 
+@dataclass
 class ObjectParser(Generic[ObjectData], ABC, metaclass=Singleton):
     """Parser for any python-object."""
 
@@ -26,74 +29,121 @@ class ObjectParser(Generic[ObjectData], ABC, metaclass=Singleton):
         """Title for current object type."""
         ...
 
-    def __init__(self, data: ObjectData) -> None:
-        """Initialize python-object parser.
+    _data: ObjectData
+    _source_code: str
+    _start_line_number: int
+    _parent: 'ObjectParser | None'
 
-        Args:
-            data: object-data (original pbject).
-        """
-        self._data = data
+    def __post_init__(self) -> None:
+        """Initialize python-object parser."""
         self._logger = logger
+        self._parse_nodes()
+
+    def _parse_nodes(self) -> None:
+        """Parse all nodes."""
+        from .classes import ClassParser
+        from .functions import FunctionParser
+
+        self._classes: list[ClassParser] = []
+        self._functions: list[FunctionParser] = []
+
+        for node in self._data.body:
+            if isinstance(node, ClassDef):
+                self._classes.append(
+                    ClassParser(
+                        node,
+                        self._source_code,
+                        node.lineno + self.start_line_number,
+                        self,
+                    ),
+                )
+            if isinstance(node, FunctionDef):
+                self._functions.append(
+                    FunctionParser(
+                        node,
+                        self._source_code,
+                        node.lineno + self.start_line_number,
+                        self,
+                    ),
+                )
 
     @property
-    def docstring(self) -> DocstringParser | None:
+    def docstring(self) -> DocstringParser:
         """Docstring parser for current python object.
 
         Returns:
             Docstring parser with text data from current class.
         """
-        if not self._data.__doc__:
+        docstring_node = self._data.body[0]
+        if (
+            not isinstance(docstring_node, Expr)
+            or not isinstance(docstring_node.value, Constant)
+            or not isinstance(docstring_node.value.value, str)
+        ):
             raise DocstringNotFoundException('Docstring not found')
-        return DocstringParser.determine(self._data.__doc__)
+        return DocstringParser.determine(docstring_node.value.value)
 
     @property
-    def classes(self) -> Iterator['ClassParser']:
+    def classes(self) -> list['ClassParser']:
         """Get list of classes in current element.
 
         Yields:
             ClassParser handler for each class placed in current element.
         """
-        from .classes import ClassParser
-
-        for item_name, value in self._data.__dict__.items():
-            if isinstance(value, type):
-                self._logger.debug(f'Found class named "{item_name}"')
-                yield ClassParser(value)
+        return self._classes
 
     @property
-    def functions(self) -> Iterator['FunctionParserBasic']:
+    def functions(self) -> list['FunctionParser']:
         """Get list of functions in current element.
 
         Yields:
-            FunctionParser handler for each class placed in current element.
+            FunctionParser handler for each function placed in current element.
         """
-        from .functions import ClassMethodParser, FunctionParser, PropertyParser, StaticMethodParser
-
-        for item_name, value in self._data.__dict__.items():
-            if isfunction(value):
-                self._logger.debug(f'Found function named "{item_name}"')
-                yield FunctionParser(value)
-            if isinstance(value, staticmethod):
-                self._logger.debug(f'Found staticmethod named "{item_name}"')
-                yield StaticMethodParser(value.__func__)
-            if isinstance(value, classmethod):
-                self._logger.debug(f'Found classmethod named "{item_name}"')
-                yield ClassMethodParser(value.__func__)
-            if isinstance(value, property):
-                self._logger.debug(f'Found property named "{item_name}"')
-                yield PropertyParser(value.fget)
+        return self._functions
 
     @property
+    def start_line_number(self) -> int:
+        """Start code row number.
+
+        Returns:
+            Number of start row for current element.
+        """
+        return self._start_line_number
+
+    @property
+    def source_code(self) -> str:
+        """Source code of current python item.
+
+        Returns:
+            String with source code for current python item.
+        """
+        return self._source_code
+
+    @property
+    def module(self) -> 'ModuleParser':
+        """Module containing current python item.
+
+        Returns:
+            Module parser which contains current object globally.
+        """
+        from .module import ModuleParser
+
+        current_item: ObjectParser = self
+        while current_item._parent:
+            current_item = current_item._parent
+        if not isinstance(current_item, ModuleParser):
+            raise UnknownSituationOccured('Last parent object is not module')
+        return current_item
+
+    @property
+    @abstractmethod
     def name(self) -> str:
         """Name of current object.
 
         Returns:
             Name of current object based on its type.
         """
-        name = getattr(self._data, '__name__')
-        if not name:
-            raise NameNotFoundException('Name not found')
-        return name
+        ...
 
     def __repr__(self) -> str:
         """Get string representation for current object.
@@ -102,3 +152,19 @@ class ObjectParser(Generic[ObjectData], ABC, metaclass=Singleton):
             Object type with its full name.
         """
         return f'{self.TITLE} "{self.name}"'
+
+
+ObjectNameData = TypeVar('ObjectNameData', bound=ClassDef | FunctionDef)
+
+
+class ObjectNameParser(ObjectParser[ObjectNameData], ABC):
+    """Parser for python functions with name."""
+
+    @property
+    def name(self) -> str:
+        """Name of current object.
+
+        Returns:
+            Name of current object based on its type.
+        """
+        return self._data.name
