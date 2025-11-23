@@ -1,20 +1,16 @@
 """Any python object parsing."""
 
 from abc import ABC, abstractmethod
-from ast import ClassDef, Constant, Expr, FunctionDef, Module, stmt
+from ast import ClassDef, Constant, Expr, FunctionDef, Import, ImportFrom, Module, arguments, expr, parse, stmt
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Generic, TypeVar
+from os import path
+from pathlib import Path
+from typing import Generic, TypeVar, final
 
-from ..exceptions import DocstringNotFoundException, UnknownSituationOccured
-from ..logger import logger
-from ..parsers import DocstringParser
-from ..utils import Singleton
-
-if TYPE_CHECKING:
-    from .classes import ClassParser
-    from .functions import FunctionParser
-    from .module import ModuleParser
-
+from .exceptions import DocstringNotFoundException, UnknownSituationOccured
+from .logger import logger
+from .parsers import DocstringParser
+from .utils import Singleton
 
 EntityData = TypeVar('EntityData', bound=ClassDef | FunctionDef | Module)
 
@@ -53,9 +49,6 @@ class EntityParser(Generic[EntityData], ABC, metaclass=Singleton):
         Args:
             node: single node of current entity body.
         """
-        from .classes import ClassParser
-        from .functions import FunctionParser
-
         if isinstance(node, ClassDef):
             self._classes.append(
                 ClassParser(
@@ -136,8 +129,6 @@ class EntityParser(Generic[EntityData], ABC, metaclass=Singleton):
         Returns:
             Module parser which contains current entity globally.
         """
-        from .module import ModuleParser
-
         current_item: EntityParser = self
         while current_item._parent:
             current_item = current_item._parent
@@ -178,3 +169,74 @@ class EntityNameParser(EntityParser[EntityNameData], ABC):
             Name of current entity based on its type.
         """
         return self._data.name
+
+
+@final
+class ClassParser(EntityNameParser[ClassDef]):
+    """Parser for class."""
+
+    TITLE = 'Class'
+
+
+@final
+class FunctionParser(EntityNameParser[FunctionDef]):
+    """Class used to parse single function data."""
+
+    TITLE = 'Function'
+
+    @property
+    def args(self) -> arguments:
+        """Get function arguments.
+
+        Returns:
+            Node for function arguments.
+        """
+        return self._data.args
+
+    @property
+    def return_value(self) -> expr | None:
+        """Get current function return value.
+
+        Returns:
+            Return value of current function.
+        """
+        return self._data.returns
+
+
+@final
+class ModuleParser(EntityParser[Module]):
+    """Parser for python modules."""
+
+    TITLE = 'Module'
+
+    def __init__(self, data: str | Path) -> None:
+        """Initizlize parser for python module.
+
+        Args:
+            data: path to python module.
+        """
+        self._path = path.relpath(data)
+        with open(data, 'r') as file:
+            code = file.read()
+            super().__init__(parse(code), code, 0, None)
+
+    @property
+    def name(self) -> str:
+        """Get module name.
+
+        Returns:
+            Module name based on module path.
+        """
+        return str(self._path.replace('/', '.').replace('\\', '.'))
+
+    def _parse_node(self, node: stmt) -> None:
+        """Parse single node.
+
+        Args:
+            node: single node.
+        """
+        super()._parse_node(node)
+        if isinstance(node, Import):
+            ...
+        if isinstance(node, ImportFrom):
+            ...

@@ -1,6 +1,6 @@
 [project]
 name = 'docstrings-parser'
-version = '0.0.2.a3'
+version = '0.0.2.a4'
 authors = [
     {name = 'Maksim Ermoshin', email = 'maksim_ermoshin@mail.ru'},
 ]
@@ -8,16 +8,7 @@ description = 'Library for automatic docstrings check and readme generation'
 readme = 'README.md'
 requires-python = '>=3.14'
 dependencies = [
-    'importlib_metadata',
-    'pandas',
-    'setuptools',
-    'requests',
-    'tabulate',
-    'asttokens',
-    'typing-extensions',
-    'python-dotenv',
-    'flake8',
-    'flake8-docstrings',
+    'treelib',
 ]
 [project.optional-dependencies]
 style = [
@@ -30,12 +21,11 @@ style = [
     'flake8-quotes',
     'isort',
     'mypy',
-    'pandas-stubs',
-    'types-setuptools',
 ]
 
 [project.scripts]
-generate-readme = 'readme_generator.scripts.generate:generate_readme'
+generate-readme = 'docstrings_parser.scripts.generate:generate_readme'
+check-docstrings = 'docstrings_parser.scripts.check_docstrings:check_docstrings'
 
 [build-system]
 requires = ['setuptools']
@@ -58,7 +48,7 @@ exclude = ['venv/', 'env/', 'temp/', 'build/']
 max-line-length = 120
 
 [tool.mypy]
-python_version = '3.10'
+python_version = '3.14'
 exclude = ['venv', 'temp']
 explicit_package_bases = true
 disallow_untyped_defs = true

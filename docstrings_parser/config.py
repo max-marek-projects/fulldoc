@@ -26,3 +26,4 @@ class Files:
 
     MAIN = 'main.py'
     README = 'README.md'
+    GITIGNORE = '.gitignore'
