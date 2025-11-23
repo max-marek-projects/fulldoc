@@ -1,6 +1,6 @@
 [project]
 name = 'docstrings-parser'
-version = '0.0.2.a2'
+version = '0.0.2.a3'
 authors = [
     {name = 'Maksim Ermoshin', email = 'maksim_ermoshin@mail.ru'},
 ]

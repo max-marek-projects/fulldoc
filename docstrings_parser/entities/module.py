@@ -1,6 +1,6 @@
 """Python modules parsing."""
 
-from ast import Module, parse, stmt, Import, ImportFrom
+from ast import Import, ImportFrom, Module, parse, stmt
 from os import path
 from pathlib import Path
 from typing import final

@@ -13,7 +13,7 @@ class FunctionParser(EntityNameParser[FunctionDef]):
     TITLE = 'Function'
 
     @property
-    def arguments(self) -> arguments:
+    def args(self) -> arguments:
         """Get function arguments.
 
         Returns:
