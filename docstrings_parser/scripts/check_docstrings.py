@@ -30,4 +30,4 @@ def check_docstrings() -> None:
         module_name=args.main_module,
         folder=args.folder,
     )
-    parser.tree()
+    parser.tree
