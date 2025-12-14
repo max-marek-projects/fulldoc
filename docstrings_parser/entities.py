@@ -1,16 +1,19 @@
 """Any python object parsing."""
 
+import importlib
+import importlib.metadata
+import sys
 from abc import ABC, abstractmethod
 from ast import ClassDef, Constant, Expr, FunctionDef, Import, ImportFrom, Module, arguments, expr, parse, stmt
 from dataclasses import dataclass
-from os import path
+from functools import cached_property
 from pathlib import Path
 from typing import Generic, TypeVar, final
 
-from .exceptions import DocstringNotFoundException, UnknownSituationOccured
+from .exceptions import DocstringNotFoundException, LogicError, ModuleNotFoundException, WrongValueError
 from .logger import logger
 from .parsers import DocstringParser
-from .utils import Singleton
+from .utils import PACKAGES, Singleton
 
 EntityData = TypeVar('EntityData', bound=ClassDef | FunctionDef | Module)
 
@@ -133,7 +136,7 @@ class EntityParser(Generic[EntityData], ABC, metaclass=Singleton):
         while current_item._parent:
             current_item = current_item._parent
         if not isinstance(current_item, ModuleParser):
-            raise UnknownSituationOccured('Last parent entity is not module')
+            raise LogicError('Last parent entity is not module')
         return current_item
 
     @property
@@ -153,6 +156,10 @@ class EntityParser(Generic[EntityData], ABC, metaclass=Singleton):
             Entity type with its full name.
         """
         return f'{self.TITLE} "{self.name}"'
+
+    def __hash__(self) -> int:
+        """Get hash of current object."""
+        return hash(self._data)
 
 
 EntityNameData = TypeVar('EntityNameData', bound=ClassDef | FunctionDef)
@@ -209,13 +216,18 @@ class ModuleParser(EntityParser[Module]):
 
     TITLE = 'Module'
 
-    def __init__(self, data: str | Path) -> None:
+    def __init__(self, data: Path, folder: Path) -> None:
         """Initizlize parser for python module.
 
         Args:
             data: path to python module.
+            folder: project folder.
         """
-        self._path = path.relpath(data)
+        self._path = data
+        self._folder = folder
+        self._imported_local_modules: set['ModuleParser'] = set()
+        self._imported_builtin_modules: set[str] = set()
+        self._imported_installed_modules: dict[str, list[importlib.metadata.Distribution]] = {}
         with open(data, 'r') as file:
             code = file.read()
             super().__init__(parse(code), code, 0, None)
@@ -227,7 +239,42 @@ class ModuleParser(EntityParser[Module]):
         Returns:
             Module name based on module path.
         """
-        return str(self._path.replace('/', '.').replace('\\', '.'))
+        return str(self._path.relative_to(self._folder)).replace('/', '.').replace('\\', '.')
+
+    def _parse_imported_module(self, module_name: str, line_number: int, level: int = 0) -> None:
+        """Parse imported module data by it's name."""
+        module_path = module_name.replace('.', '/')
+        if level:
+            folder = self.path.parent
+            for _ in range(level - 1):
+                folder = folder.parent
+        else:
+            folder = self._folder
+        for path in ((folder / module_path).with_suffix('.py'), (folder / module_path / '__init__.py')):
+            if path.exists():
+                self._imported_local_modules.add(ModuleParser(path, folder=self._folder))
+                return
+        if module_path.startswith('.'):
+            raise ModuleNotFoundException(f'Module not found: {self.path}:{line_number}')
+        main_name = module_name.split('.')[0]
+        if distribution_names := PACKAGES.get(main_name):
+            if main_name in self._imported_installed_modules:
+                return
+            self._imported_installed_modules[main_name] = sorted(
+                [importlib.metadata.distribution(distribution_name) for distribution_name in distribution_names],
+                key=lambda distribution: distribution.name,
+            )
+            return
+        if main_name in sys.builtin_module_names:
+            self._imported_builtin_modules.add(main_name)
+            return
+        builtin_module = importlib.import_module(main_name)
+        if not builtin_module.__file__:
+            raise ModuleNotFoundError(f'File not found for module "{main_name}"')
+        if sys.base_exec_prefix in builtin_module.__file__:
+            self._imported_builtin_modules.add(main_name)
+            return
+        raise ModuleNotFoundError(f'Module named "{module_name}" not found: {self.path}:{line_number}')
 
     def _parse_node(self, node: stmt) -> None:
         """Parse single node.
@@ -237,6 +284,36 @@ class ModuleParser(EntityParser[Module]):
         """
         super()._parse_node(node)
         if isinstance(node, Import):
-            ...
+            for name_node in node.names:
+                self._parse_imported_module(name_node.name, name_node.lineno)
         if isinstance(node, ImportFrom):
-            ...
+            if not node.module:
+                raise LogicError(
+                    f'Module data not found in `from ... import ...` syntax: {self.path}:{node.lineno}',
+                )
+            self._parse_imported_module(node.module, node.lineno, level=node.level)
+
+    @cached_property
+    def libraries(self) -> tuple[list[str], dict[str, list[importlib.metadata.Distribution]]]:
+        """Libraries used in current module."""
+        return sorted(self._imported_builtin_modules), dict(
+            sorted(
+                self._imported_installed_modules.items(),
+            ),
+        )
+
+    @cached_property
+    def imported_modules(self) -> list['ModuleParser']:
+        """Modules imported from current module."""
+        return sorted(self._imported_local_modules, key=lambda value: value.name)
+
+    @property
+    def path(self) -> Path:
+        """Get current module path."""
+        return self._path
+
+    def __lt__(self, other: object) -> bool:
+        """Compare two module parsers."""
+        if not isinstance(other, ModuleParser):
+            raise WrongValueError('Can only compare ModuleParser to ModuleParser object')
+        return self._path < other._path

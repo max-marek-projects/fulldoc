@@ -48,6 +48,7 @@ skip-string-normalization = true
 ignore = ['W503']
 exclude = ['venv/', 'env/', 'temp/', 'build/']
 max-line-length = 120
+max-complexity = 15
 
 [tool.mypy]
 python_version = '3.14'

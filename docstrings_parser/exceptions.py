@@ -13,13 +13,19 @@ class DocstringNotFoundException(ReadmeGeneratorException):
     pass
 
 
-class NameNotFoundException(ReadmeGeneratorException):
-    """Exception raised when entity name is not found."""
+class LogicError(ReadmeGeneratorException):
+    """Exception raised when logic error occures."""
 
     pass
 
 
-class UnknownSituationOccured(ReadmeGeneratorException):
-    """Exception raised when occured unknown situation."""
+class ModuleNotFoundException(ReadmeGeneratorException):
+    """Exception raised when module is not found."""
+
+    pass
+
+
+class WrongValueError(ReadmeGeneratorException):
+    """Exception raised when wrong value found."""
 
     pass

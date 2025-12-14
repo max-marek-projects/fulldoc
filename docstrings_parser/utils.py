@@ -1,5 +1,6 @@
 """Additional functionality."""
 
+import importlib.metadata
 from abc import ABCMeta
 from typing import Any, Generic, TypeVar
 
@@ -31,3 +32,6 @@ class Singleton(ABCMeta, Generic[ClassEntity]):
         if cls not in cls._instances:
             cls._instances[(cls, args[0])] = super().__call__(*args, **kwargs)
         return cls._instances[(cls, args[0])]
+
+
+PACKAGES = importlib.metadata.packages_distributions()

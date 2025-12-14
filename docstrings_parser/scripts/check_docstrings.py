@@ -25,6 +25,13 @@ def check_docstrings() -> None:
         default='',
         type=str,
     )
+    arguments_parser.add_argument(
+        '-a',
+        '--all-files',
+        help='Parse all files.',
+        action=argparse.BooleanOptionalAction,
+        default=False,
+    )
     args = arguments_parser.parse_args()
     parser = ProjectParser(
         module_name=args.main_module,

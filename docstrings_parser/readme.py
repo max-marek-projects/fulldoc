@@ -2,10 +2,12 @@
 
 import re
 from dataclasses import dataclass
+from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from dominate.tags import a, br, code, pre  # type: ignore[import-untyped]
+from pandas import DataFrame
 
 from .config import Files
 
@@ -50,6 +52,8 @@ class ReadmeHandler:
         """
         readme_content: dict[str, str] = {}
         readme_content['Tree'] = str(pre(item for file in str(self._project.tree).split('\n') for item in [file, br()]))
+        readme_content['Libraries'] = self.libraries_table
+        readme_content['Files'] = '\n'.join([module.name for module in self._project.modules])
         readme_text = f'# {self._project.name}\n\n'
         readme_text += '## Content\n\n'
         for index, title in enumerate(tuple(readme_content.keys()), start=1):
@@ -60,7 +64,42 @@ class ReadmeHandler:
         for title, content in readme_content.items():
             readme_text += f'## {title}\n\n'
             readme_text += content
+            readme_text += '\n\n'
         return readme_text
+
+    @cached_property
+    def libraries_table(self) -> str:
+        """Get project libraries table markdown representation."""
+        builtin_libraries, installed_libraries = self._project.libraries
+        return (
+            DataFrame(
+                data={
+                    'Built in': [
+                        '\n\n' + DataFrame(data={'Name': builtin_libraries}).to_markdown(index=False) + '\n\n',
+                    ],
+                    'Installed': [
+                        '\n\n'
+                        + DataFrame(
+                            data={
+                                'Name': [
+                                    distribution.name
+                                    for import_name, distributions in installed_libraries.items()
+                                    for distribution in distributions
+                                ],
+                                'Version': [
+                                    distribution.version
+                                    for import_name, distributions in installed_libraries.items()
+                                    for distribution in distributions
+                                ],
+                            },
+                        ).to_markdown(index=False)
+                        + '\n\n',
+                    ],
+                },
+            )
+            .to_html(index=False)
+            .replace('\\n', '\n')
+        )
 
     def write(self, path: Path = Path(Files.README)) -> None:
         """Write readme content to file.
