@@ -16,13 +16,6 @@ class DocstringItem:
     description: str
 
 
-@dataclass
-class DocstringNamedItem(DocstringItem):
-    """Python docstring named item data."""
-
-    name: str
-
-
 class DocstringParser(ABC):
     """Parser for any docstring style."""
 
@@ -107,28 +100,22 @@ class DocstringParser(ABC):
             self._return_value = None
         # parse arguments
         arguments_block_match = re.search(patterns.ARGS_SECTION, self._description)
-        self._args_data: list[DocstringNamedItem] = []
+        self._args_data: dict[str, DocstringItem] = {}
         if arguments_block_match:
-            for arg_match in re.finditer(patterns.ARG, dedent(arguments_block_match.group())):
-                self._args_data.append(
-                    DocstringNamedItem(
-                        arg_match.group('type'),
-                        arg_match.group('description'),
-                        arg_match.group('name'),
-                    ),
+            for arg_match in re.finditer(patterns.ARG, dedent(arguments_block_match.group('section'))):
+                self._args_data[arg_match.group('name')] = DocstringItem(
+                    arg_match.group('type'),
+                    arg_match.group('description'),
                 )
             self._description = self._description.replace(arguments_block_match.group(), '')
         # parse attributes
         attributes_block_match = re.search(patterns.ATTR_SECTION, self._description)
-        self._attrs_data: list[DocstringNamedItem] = []
+        self._attrs_data: dict[str, DocstringItem] = {}
         if attributes_block_match:
-            for attr_match in re.finditer(patterns.ATTR, dedent(attributes_block_match.group())):
-                self._attrs_data.append(
-                    DocstringNamedItem(
-                        attr_match.group('type'),
-                        attr_match.group('description'),
-                        attr_match.group('name'),
-                    ),
+            for attr_match in re.finditer(patterns.ATTR, dedent(attributes_block_match.group('section'))):
+                self._attrs_data[attr_match.group('name')] = DocstringItem(
+                    attr_match.group('type'),
+                    attr_match.group('description'),
                 )
             self._description = self._description.replace(attributes_block_match.group(), '')
         # parse raise block
@@ -171,9 +158,14 @@ class DocstringParser(ABC):
         return self._return_value
 
     @property
-    def args_data(self) -> list[DocstringNamedItem]:
+    def args_data(self) -> dict[str, DocstringItem]:
         """Data from docstring about function arguments."""
         return self._args_data
+
+    @property
+    def attrs_data(self) -> dict[str, DocstringItem]:
+        """Data from docstring about attributes."""
+        return self._attrs_data
 
     @property
     def raise_data(self) -> list[DocstringItem]:
@@ -189,18 +181,17 @@ class GoogleDocstringParser(DocstringParser):
     class _Patterns(DocstringParser._Patterns):
         """Patterns for google docstring style."""
 
-        RETURN = re.compile(r'(Returns|Yields):\n\s+(?:(?P<type>\w+): )?(?P<description>[\s\S]*?)(\n\S|$)')
-        ARGS_SECTION = re.compile(r'Args:\n([\s\S]*?)(\n\S|$)')
+        RETURN = re.compile(r'(Returns|Yields):\n\s+(?:(?P<type>\w+): )?(?P<description>[\s\S]*?)(?=\n\S|$)')
+        ARGS_SECTION = re.compile(r'Args:\n(?P<section>[\s\S]*?)(?=\n\S|$)')
         ARG = re.compile(
-            r'(?:^|\n[ \t]*)(?P<name>\**\w+?)(?:[ ]*\((?P<type>.+?)?\))?(?:[ ]*:[ ]*)'
-            r'(?P<description>[\s\S]*?)(\n\S|$)',
-            re.DOTALL,
+            r'(?P<name>\**\w+?)(?: *\((?P<type>.+?)?\))?(?:[ ]*:[ ]*)(?P<description>[\s\S]*?)(?=\n\S|\z)',
+            re.DOTALL | re.MULTILINE,
         )
-        ATTR_SECTION = re.compile(r'Attributes:\n([\s\S]*?)(\n\S|$)')
+        ATTR_SECTION = re.compile(r'Attributes:\n(?P<section>[\s\S]*?)(?=\n\S|$)')
         ATTR = ARG
-        RAISE_SECTION = re.compile(r'Raises:\n\s+(\w+)(?: \((.+)\))?: ([\s\S]*?)(\n\S|$)')
+        RAISE_SECTION = re.compile(r'Raises:\n\s+(\w+)(?: \((.+)\))?: ([\s\S]*?)(?=\n\S|$)')
         RAISE = re.compile(
-            r'(?:^|\n[ \t]*)(?P<type>\w+?)(?:[ ]*:[ ]*)(?P<description>[\s\S]*?)(\n\S|$)',
+            r'(?=^|\n[ \t]*)(?P<type>\w+?)(?:[ ]*:[ ]*)(?P<description>[\s\S]*?)(?=\n\S|$)',
             re.DOTALL,
         )
         ANY_SIGN = re.compile(r'^(Attributes|Raises|Args|Returns|Yields):\n')
@@ -215,7 +206,7 @@ class ReSTDocstringParser(DocstringParser):
         """Patterns for reStructuredText docstring style."""
 
         RETURN = re.compile(r'(?<=:return: )(?P<description>[\S\s]*?)(?=\n:(?:rtype: (?P<type>[\S\s]*?)(?=\n:|$))?|$)')
-        RAISE_SECTION = ATTR_SECTION = ARGS_SECTION = re.compile(r'.*')
+        RAISE_SECTION = ATTR_SECTION = ARGS_SECTION = re.compile(r'(?P<section>.*)')
         ARG = re.compile(
             r'(?<=:param )(?P<name>\w+) *: *(?P<description>[\S\s]*?)(?=\n:(?:type \1: (?P<type>[\S\s]*?)(?=\n:|$)|$))',
         )

@@ -21,7 +21,13 @@ from .readme import ReadmeHandler
 
 @dataclass
 class ProjectParser:
-    """Module used to parse project data."""
+    """Module used to parse project data.
+
+    Attributes:
+        module_name: main module name for current project.
+        folder: folder path to search files from for current project.
+        parse_all_files: parse all files from folder (not only used from main file).
+    """
 
     module_name: str = Files.MAIN
     folder: Path = Path('.')
@@ -33,7 +39,10 @@ class ProjectParser:
         self.folder = self.folder.absolute()
         self._builtin_libraries: set[str] = set()
         self._installed_libraries: dict[str, list[Distribution]] = {}
+        self._modules: list[ModuleParser] = []
+        self.get_all_modules()
         for module in self.modules:
+            module.parse()
             builtin_libraries, installed_libraries = module.libraries
             self._builtin_libraries.update(builtin_libraries)
             self._installed_libraries.update(installed_libraries)
@@ -48,7 +57,11 @@ class ProjectParser:
         return self._tree_from_folder(self.folder)
 
     def _tree_from_folder(self, folder: Path) -> Tree:
-        """Get tree from current folder path."""
+        """Get tree from current folder path.
+
+        Args:
+            folder: current folder path to create tree from.
+        """
         tree = Tree()
         tree.create_node(folder.name, str(folder))
         for file in listdir(folder):
@@ -95,9 +108,13 @@ class ProjectParser:
                     self.logger.info('Project name not found in toml file')
         return self.folder.absolute().name
 
-    @cached_property
+    @property
     def modules(self) -> list[ModuleParser]:
         """Get all project modules."""
+        return self._modules
+
+    def get_all_modules(self) -> None:
+        """Parse all modules from tree."""
         if self.parse_all_files:
             new_nodes = {node for node in self.tree.all_nodes_itr() if node.tag.endswith('.py')}
         else:
@@ -120,7 +137,7 @@ class ProjectParser:
                 if new_node not in new_nodes and new_node not in previously_parsed_nodes:
                     new_nodes.add(new_node)
             previously_parsed_nodes.add(node)
-        return [heapq.heappop(modules) for _ in range(len(modules))]
+        self._modules = [heapq.heappop(modules) for _ in range(len(modules))]
 
     @property
     def readme(self) -> ReadmeHandler:
@@ -131,3 +148,8 @@ class ProjectParser:
     def libraries(self) -> tuple[list[str], dict[str, list[Distribution]]]:
         """Get libraries used in the whole project."""
         return sorted(self._builtin_libraries), dict(sorted(self._installed_libraries.items()))
+
+    def check_docstrings(self) -> None:
+        """Провести проверку докстрингов."""
+        for module in self.modules:
+            module.check_docstrings()

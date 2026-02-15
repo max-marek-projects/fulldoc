@@ -10,7 +10,7 @@
 
 ## 1. Tree
 
-<pre>docstrings_parser<br>├── config.py<br>├── entities.py<br>├── exceptions.py<br>├── logger.py<br>├── parsers<br>│   ├── __init__.py<br>│   └── docstrings.py<br>├── project.py<br>├── py.typed<br>├── readme.py<br>├── scripts<br>│   ├── check_docstrings.py<br>│   └── generate.py<br>├── types.py<br>└── utils.py<br><br></pre>
+<pre>docstrings_parser<br>├── config.py<br>├── entities.py<br>├── exceptions.py<br>├── logger.py<br>├── parsers<br>│   ├── __init__.py<br>│   ├── docstrings.py<br>│   └── type_annotation.py<br>├── project.py<br>├── py.typed<br>├── readme.py<br>├── scripts<br>│   ├── check_docstrings.py<br>│   └── generate.py<br>├── types.py<br>└── utils.py<br><br></pre>
 
 ## 2. Libraries
 
@@ -25,34 +25,35 @@
     <tr>
       <td>
 
-| Name        |
+| Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
 |:------------|
-| abc         |
-| argparse    |
-| ast         |
+| abc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
+| argparse&nbsp;&nbsp;&nbsp;&nbsp;|
+| ast&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
+| collections |
 | dataclasses |
-| functools   |
-| heapq       |
-| importlib   |
-| inspect     |
-| logging     |
-| os          |
-| pathlib     |
-| re          |
-| sys         |
-| textwrap    |
-| typing      |
+| functools&nbsp;&nbsp; |
+| heapq&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
+| importlib&nbsp;&nbsp; |
+| inspect&nbsp;&nbsp;&nbsp;&nbsp; |
+| logging&nbsp;&nbsp;&nbsp;&nbsp; |
+| os&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+| pathlib&nbsp;&nbsp;&nbsp;&nbsp; |
+| re&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
+| sys&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
+| textwrap&nbsp;&nbsp;&nbsp;&nbsp;|
+| typing&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
 
 </td>
       <td>
 
-| Name     | Version   |
+| Name&nbsp;&nbsp;&nbsp;&nbsp; | Version&nbsp;&nbsp; |
 |:---------|:----------|
-| dominate | 2.9.1     |
-| pandas   | 2.3.3     |
-| pathspec | 0.12.1    |
-| tomli    | 2.3.0     |
-| treelib  | 1.8.0     |
+| dominate | 2.9.1&nbsp;&nbsp;&nbsp;&nbsp; |
+| pandas&nbsp;&nbsp; | 3.0.0&nbsp;&nbsp;&nbsp;&nbsp; |
+| pathspec | 1.0.4&nbsp;&nbsp;&nbsp;&nbsp; |
+| tomli&nbsp;&nbsp;&nbsp;&nbsp;| 2.4.0&nbsp;&nbsp;&nbsp;&nbsp; |
+| treelib&nbsp;&nbsp;| 1.8.0&nbsp;&nbsp;&nbsp;&nbsp; |
 
 </td>
     </tr>
@@ -67,6 +68,7 @@ exceptions.py
 logger.py
 parsers.__init__.py
 parsers.docstrings.py
+parsers.type_annotation.py
 project.py
 readme.py
 scripts.check_docstrings.py

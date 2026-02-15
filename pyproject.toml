@@ -1,6 +1,6 @@
 [project]
 name = 'docstrings-parser'
-version = '0.0.2.a4'
+version = '0.0.2.a5'
 authors = [
     {name = 'Maksim Ermoshin', email = 'maksim_ermoshin@mail.ru'},
 ]
@@ -11,6 +11,8 @@ dependencies = [
     'treelib',
     'tomli',
     'dominate',
+    'pandas',
+    'tabulate',
 ]
 [project.optional-dependencies]
 style = [
@@ -23,6 +25,7 @@ style = [
     'flake8-quotes',
     'isort',
     'mypy',
+    'pandas-stubs',
 ]
 
 [project.scripts]
@@ -52,6 +55,6 @@ max-complexity = 15
 
 [tool.mypy]
 python_version = '3.14'
-exclude = ['venv', 'temp']
+exclude = ['venv', 'temp', 'build']
 explicit_package_bases = true
 disallow_untyped_defs = true

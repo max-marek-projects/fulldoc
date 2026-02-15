@@ -17,7 +17,11 @@ if TYPE_CHECKING:
 
 @dataclass
 class ReadmeHandler:
-    """Readme handler."""
+    """Readme handler.
+
+    Attributes:
+        _project: current project handler.
+    """
 
     _project: 'ProjectParser'
 

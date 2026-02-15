@@ -15,6 +15,9 @@ class Singleton(ABCMeta, Generic[ClassEntity]):
     class CustomClass(metaclass=Singleton):
         ...
 
+    Attributes:
+        _instances: created instances for current singleton class for each class-value pair.
+
     Works only with current class, each child class will be separated singleton.
     """
 
@@ -22,9 +25,6 @@ class Singleton(ABCMeta, Generic[ClassEntity]):
 
     def __call__(cls, *args: Any, **kwargs: Any) -> ClassEntity:
         """Get singleton instance or create one.
-
-        Args:
-            cls: class with singleton functionality.
 
         Returns:
             Class entity created previously or now.
