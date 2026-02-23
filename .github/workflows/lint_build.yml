@@ -78,7 +78,7 @@ jobs:
     - name: Publish to GitHub Packages
       run: |
         pip install twine
-        twine upload --repository-url https://upload.pkg.github.com/${{ github.repository }} dist/*
+        twine upload --repository-url https://upload.pkg.github.com/${{ github.repository }} dist/* --verbose
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
