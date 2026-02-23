@@ -75,3 +75,10 @@ jobs:
       with:
         name: library-dist-${{ needs.parse-versions.outputs.library-version }}-py${{ matrix.python-version }}
         path: dist/
+    - name: Publish to GitHub Packages
+      run: |
+        pip install twine
+        twine upload --repository-url https://upload.pkg.github.com/${{ github.repository }} dist/*
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
