@@ -1,5 +1,5 @@
 [project]
-name = 'docstrings-parser'
+name = 'fulldoc'
 version = '0.0.2.a6'
 authors = [
     {name = 'Maksim Ermoshin', email = 'maksim_ermoshin@mail.ru'},
