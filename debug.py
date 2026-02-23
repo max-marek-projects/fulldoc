@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from docstrings_parser import ProjectParser
+from fulldoc import ProjectParser
 
 project_parser = ProjectParser(
     folder=Path('docstrings_parser'),

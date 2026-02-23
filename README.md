@@ -13,15 +13,15 @@
 readme_generator
 ├── .github
 │   ├── scripts
-│   │   └── parse_version.py
+│   │   └── parse_versions.py
 │   └── workflows
-│       ├── lint.yml
+│       ├── lint_build.yml
 │       └── publish.yml
 ├── .gitignore
 ├── Makefile
 ├── README.md
 ├── debug.py
-├── docstrings_parser
+├── fulldoc
 │   ├── __init__.py
 │   ├── config.py
 │   ├── exceptions.py
