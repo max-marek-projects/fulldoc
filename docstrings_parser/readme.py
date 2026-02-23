@@ -2,12 +2,12 @@
 
 import re
 from dataclasses import dataclass
-from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from dominate.tags import a, br, code, pre  # type: ignore[import-untyped]
+from dominate.tags import a, code, pre  # type: ignore[import-untyped]
 from pandas import DataFrame
+from treelib import Tree
 
 from .config import Files
 
@@ -55,9 +55,8 @@ class ReadmeHandler:
             Readme text completed from project information.
         """
         readme_content: dict[str, str] = {}
-        readme_content['Tree'] = str(pre(item for file in str(self._project.tree).split('\n') for item in [file, br()]))
+        readme_content['Tree'] = str(pre('\n' + str(self.get_tree()) + '\n'))
         readme_content['Libraries'] = self.libraries_table
-        readme_content['Files'] = '\n'.join([module.name for module in self._project.modules])
         readme_text = f'# {self._project.name}\n\n'
         readme_text += '## Content\n\n'
         for index, title in enumerate(tuple(readme_content.keys()), start=1):
@@ -71,19 +70,24 @@ class ReadmeHandler:
             readme_text += '\n\n'
         return readme_text
 
-    @cached_property
+    @property
     def libraries_table(self) -> str:
-        """Get project libraries table markdown representation."""
+        """Get project libraries table markdown representation.
+
+        Returns:
+            String representation of pandas Dataframe containing the whole libraries information.
+        """
         builtin_libraries, installed_libraries = self._project.libraries
-        return (
-            DataFrame(
-                data={
-                    'Built in': [
-                        '\n\n' + DataFrame(data={'Name': builtin_libraries}).to_markdown(index=False) + '\n\n',
-                    ],
-                    'Installed': [
-                        '\n\n'
-                        + DataFrame(
+        return DataFrame(
+            data={
+                'Built in': [
+                    re.sub(r'\n\s*', '', DataFrame(data={'Name': builtin_libraries}).to_html(index=False, border=0)),
+                ],
+                'Installed': [
+                    re.sub(
+                        r'\n\s*',
+                        '',
+                        DataFrame(
                             data={
                                 'Name': [
                                     distribution.name
@@ -96,14 +100,30 @@ class ReadmeHandler:
                                     for distribution in distributions
                                 ],
                             },
-                        ).to_markdown(index=False)
-                        + '\n\n',
-                    ],
-                },
-            )
-            .to_html(index=False)
-            .replace('\\n', '\n')
-        )
+                        ).to_html(index=False, border=0),
+                    ),
+                ],
+            },
+        ).to_html(index=False, escape=False)
+
+    def get_tree(self) -> Tree:
+        """Get current project files tree.
+
+        Returns:
+            Tree of current project ignoring files from gitignore.
+        """
+        tree = Tree()
+        root = tree.create_node(self._project.name, self._project.name)
+        for path in self._project.files:
+            last_parent = root
+            path_parts = path.parts
+            for slice_size in range(1, len(path_parts) + 1):
+                path_slice = '/'.join(path_parts[:slice_size])
+                current_node = tree.get_node(path_slice)
+                if not current_node:
+                    current_node = tree.create_node(path_parts[slice_size - 1], path_slice, parent=last_parent)
+                last_parent = current_node
+        return tree
 
     def write(self, path: Path = Path(Files.README)) -> None:
         """Write readme content to file.

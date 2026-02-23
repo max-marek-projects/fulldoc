@@ -1,34 +1,77 @@
-name: Python test
+name: Lint and build python library
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - '**'
 
 jobs:
-  build:
 
+  parse-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      library-version: ${{ steps.run.outputs.library-version }}
+      python-versions: ${{ steps.run.outputs.python-versions }}
+      build-enabled: ${{ steps.run.outputs.build-enabled }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'  # only for parsing pyproject.toml
+      - name: Run version parser
+        id: run
+        run: python .github/scripts/parse_versions.py
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+  lint:
+    needs: parse-versions
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        python-version: ["3.14"]
-
+        python-version: ${{ fromJson(needs.parse-versions.outputs.python-versions) }}
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Upgrade pip
+      run: python -m pip install --upgrade pip
     - name: Install dependencies
+      run: pip install .[style]
+    - name: Check imports formatting
+      run: isort --check --diff .
+    - name: Check code formatting
       run: |
-        python -m pip install --upgrade pip
-        pip install .[style]
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        isort --check --diff .
         black --check --diff .
         flake8 .
-        mypy .
+    - name: Check code logic
+      run: mypy .
+
+
+  build:
+    needs: ["parse-versions", "lint"]
+    if: needs.parse-versions.outputs.build-enabled == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ${{ fromJson(needs.parse-versions.outputs.python-versions) }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Upgrade pip
+      run: python -m pip install --upgrade pip
+    - name: Install build tools
+      run: pip install build
+    - name: Build package
+      run: python -m build
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: library-dist-${{ needs.parse-versions.outputs.library-version }}-py${{ matrix.python-version }}
+        path: dist/

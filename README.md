@@ -1,16 +1,45 @@
-# docstrings-parser
+# readme_generator
 
 ## Content
 
 <code>
   <a href="#1-tree">1. Tree</a>
   <a href="#2-libraries">2. Libraries</a>
-  <a href="#3-files">3. Files</a>
 </code>
 
 ## 1. Tree
 
-<pre>docstrings_parser<br>├── config.py<br>├── entities.py<br>├── exceptions.py<br>├── logger.py<br>├── parsers<br>│   ├── __init__.py<br>│   ├── docstrings.py<br>│   └── type_annotation.py<br>├── project.py<br>├── py.typed<br>├── readme.py<br>├── scripts<br>│   ├── check_docstrings.py<br>│   └── generate.py<br>├── types.py<br>└── utils.py<br><br></pre>
+<pre>
+readme_generator
+├── .github
+│   ├── scripts
+│   │   └── parse_version.py
+│   └── workflows
+│       ├── lint.yml
+│       └── publish.yml
+├── .gitignore
+├── Makefile
+├── README.md
+├── debug.py
+├── docstrings_parser
+│   ├── __init__.py
+│   ├── config.py
+│   ├── exceptions.py
+│   ├── logger.py
+│   ├── parsers
+│   │   ├── __init__.py
+│   │   ├── docstrings.py
+│   │   └── entities.py
+│   ├── project.py
+│   ├── py.typed
+│   ├── readme.py
+│   ├── scripts
+│   │   ├── check_docstrings.py
+│   │   └── generate.py
+│   └── utils.py
+└── pyproject.toml
+
+</pre>
 
 ## 2. Libraries
 
@@ -23,56 +52,9 @@
   </thead>
   <tbody>
     <tr>
-      <td>
-
-| Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
-|:------------|
-| abc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
-| argparse&nbsp;&nbsp;&nbsp;&nbsp;|
-| ast&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
-| collections |
-| dataclasses |
-| functools&nbsp;&nbsp; |
-| heapq&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
-| importlib&nbsp;&nbsp; |
-| inspect&nbsp;&nbsp;&nbsp;&nbsp; |
-| logging&nbsp;&nbsp;&nbsp;&nbsp; |
-| os&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
-| pathlib&nbsp;&nbsp;&nbsp;&nbsp; |
-| re&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
-| sys&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |
-| textwrap&nbsp;&nbsp;&nbsp;&nbsp;|
-| typing&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|
-
-</td>
-      <td>
-
-| Name&nbsp;&nbsp;&nbsp;&nbsp; | Version&nbsp;&nbsp; |
-|:---------|:----------|
-| dominate | 2.9.1&nbsp;&nbsp;&nbsp;&nbsp; |
-| pandas&nbsp;&nbsp; | 3.0.0&nbsp;&nbsp;&nbsp;&nbsp; |
-| pathspec | 1.0.4&nbsp;&nbsp;&nbsp;&nbsp; |
-| tomli&nbsp;&nbsp;&nbsp;&nbsp;| 2.4.0&nbsp;&nbsp;&nbsp;&nbsp; |
-| treelib&nbsp;&nbsp;| 1.8.0&nbsp;&nbsp;&nbsp;&nbsp; |
-
-</td>
+      <td><table class="dataframe"><thead><tr style="text-align: right;"><th>Name</th></tr></thead><tbody><tr><td>abc</td></tr><tr><td>argparse</td></tr><tr><td>ast</td></tr><tr><td>collections</td></tr><tr><td>dataclasses</td></tr><tr><td>enum</td></tr><tr><td>importlib</td></tr><tr><td>inspect</td></tr><tr><td>json</td></tr><tr><td>logging</td></tr><tr><td>os</td></tr><tr><td>pathlib</td></tr><tr><td>re</td></tr><tr><td>subprocess</td></tr><tr><td>sys</td></tr><tr><td>textwrap</td></tr><tr><td>tomllib</td></tr><tr><td>typing</td></tr></tbody></table></td>
+      <td><table class="dataframe"><thead><tr style="text-align: right;"><th>Name</th><th>Version</th></tr></thead><tbody><tr><td>dominate</td><td>2.9.1</td></tr><tr><td>pandas</td><td>3.0.0</td></tr><tr><td>treelib</td><td>1.8.0</td></tr></tbody></table></td>
     </tr>
   </tbody>
 </table>
-
-## 3. Files
-
-config.py
-entities.py
-exceptions.py
-logger.py
-parsers.__init__.py
-parsers.docstrings.py
-parsers.type_annotation.py
-project.py
-readme.py
-scripts.check_docstrings.py
-scripts.generate.py
-types.py
-utils.py
 

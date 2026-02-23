@@ -1,6 +1,6 @@
 [project]
 name = 'docstrings-parser'
-version = '0.0.2.a5'
+version = '0.0.2.a6'
 authors = [
     {name = 'Maksim Ermoshin', email = 'maksim_ermoshin@mail.ru'},
 ]
@@ -50,11 +50,13 @@ skip-string-normalization = true
 [tool.flake8]
 ignore = ['W503']
 exclude = ['venv/', 'env/', 'temp/', 'build/']
+per-file-ignores = [
+    '.github/scripts/*: T201',
+]
 max-line-length = 120
 max-complexity = 15
 
 [tool.mypy]
 python_version = '3.14'
 exclude = ['venv', 'temp', 'build']
-explicit_package_bases = true
 disallow_untyped_defs = true

@@ -1,22 +1,16 @@
 """Project parsing functionality."""
 
-import heapq
+import subprocess
+import sys
 from dataclasses import dataclass
-from functools import cached_property
 from importlib.metadata import Distribution
-from os import listdir
 from pathlib import Path
 
-import pathspec
-from tomli import load
-from treelib import Tree
-from treelib.node import Node
-
-from .config import Files
-from .entities import ModuleParser
-from .exceptions import ModuleNotFoundException
+from .config import DocstringTypes, ProjectTypes
 from .logger import logger
+from .parsers.entities import ModuleParser
 from .readme import ReadmeHandler
+from .utils import ErrorData
 
 
 @dataclass
@@ -24,14 +18,12 @@ class ProjectParser:
     """Module used to parse project data.
 
     Attributes:
-        module_name: main module name for current project.
         folder: folder path to search files from for current project.
-        parse_all_files: parse all files from folder (not only used from main file).
+        docstrings_type: type of docstrings in current module.
     """
 
-    module_name: str = Files.MAIN
     folder: Path = Path('.')
-    parse_all_files: bool = False
+    docstrings_type: DocstringTypes = DocstringTypes.GOOGLE
 
     def __post_init__(self) -> None:
         """Initialize project parser."""
@@ -40,116 +32,111 @@ class ProjectParser:
         self._builtin_libraries: set[str] = set()
         self._installed_libraries: dict[str, list[Distribution]] = {}
         self._modules: list[ModuleParser] = []
-        self.get_all_modules()
+        self.errors: list[ErrorData] = []
+        self.files = self.get_all_files()
+        self._modules = self.get_all_modules()
         for module in self.modules:
             module.parse()
             builtin_libraries, installed_libraries = module.libraries
             self._builtin_libraries.update(builtin_libraries)
             self._installed_libraries.update(installed_libraries)
+        self.determine_project_type()
+        self.name = Path.cwd().name
 
-    @cached_property
-    def tree(self) -> Tree:
-        """Get current project files tree.
-
-        Returns:
-            Tree of current project ignoring files from gitignore.
-        """
-        return self._tree_from_folder(self.folder)
-
-    def _tree_from_folder(self, folder: Path) -> Tree:
-        """Get tree from current folder path.
-
-        Args:
-            folder: current folder path to create tree from.
-        """
-        tree = Tree()
-        tree.create_node(folder.name, str(folder))
-        for file in listdir(folder):
-            local_path = folder / file
-            if self.gitignore_patterns.match_file(local_path):
-                continue
-            if local_path.is_dir() and self.gitignore_patterns.match_file(str(local_path) + '/'):
-                continue
-            if local_path.is_file():
-                tree.create_node(local_path.name, str(local_path), parent=str(folder))
-                continue
-            subtree = self._tree_from_folder(local_path)
-            if subtree.size() <= 1:
-                continue
-            tree.paste(str(folder), subtree)
-            continue
-        return tree
-
-    @cached_property
-    def gitignore_patterns(self) -> pathspec.PathSpec:
-        """Reads patterns from a .gitignore file."""
-        try:
-            with open(Files.GITIGNORE, 'r') as f:
-                lines = f.read().splitlines()
-        except FileNotFoundError:
-            self.logger.info(f"'{Files.GITIGNORE}' not found. No patterns loaded.")
-            lines = []
-        lines.extend(['.git', '.idea'])
-        spec = pathspec.PathSpec.from_lines(pathspec.patterns.GitWildMatchPattern, lines)
-        return spec
-
-    @property
-    def name(self) -> str:
-        """Get name of current project.
+    def get_all_files(self) -> list[Path]:
+        """Parse all project files.
 
         Returns:
-            Current directory name.
+            All files that are in current repository (not gitignored).
         """
-        if Path(Files.TOML).exists():
-            with open(Files.TOML, 'rb') as file:
-                try:
-                    return load(file)['project']['name']
-                except KeyError:
-                    self.logger.info('Project name not found in toml file')
-        return self.folder.absolute().name
+        return [
+            file_path
+            for file in sorted(
+                subprocess.check_output(
+                    ['git', 'ls-files', '--cached', '--others', '--exclude-standard'],
+                    universal_newlines=True,
+                    stderr=subprocess.PIPE,
+                ).splitlines(),
+            )
+            if (file_path := Path(file)).exists()
+        ]
 
     @property
     def modules(self) -> list[ModuleParser]:
-        """Get all project modules."""
+        """Get all project modules.
+
+        Returns:
+            List of all modules in this project.
+        """
         return self._modules
 
-    def get_all_modules(self) -> None:
-        """Parse all modules from tree."""
-        if self.parse_all_files:
-            new_nodes = {node for node in self.tree.all_nodes_itr() if node.tag.endswith('.py')}
-        else:
-            main_node = self.tree.get_node(str(self.folder / self.module_name))
-            if not main_node:
-                raise ModuleNotFoundException(
-                    f'Main module named "{self.folder / self.module_name}" is not found in git scope',
-                )
-            new_nodes = {main_node}
-        previously_parsed_nodes: set[Node] = set()
+    def get_all_modules(self) -> list[ModuleParser]:
+        """Parse all modules from tree.
+
+        Returns:
+            List of all python-modules handlers.
+        """
         modules: list[ModuleParser] = []
-        while new_nodes:
-            node = new_nodes.pop()
-            if Path(node.identifier).is_dir():
-                continue
-            module = ModuleParser(Path(node.identifier), folder=self.folder)
-            heapq.heappush(modules, module)
-            for imported_module in module.imported_modules:
-                new_node = self.tree.get_node(str(imported_module.path))
-                if new_node not in new_nodes and new_node not in previously_parsed_nodes:
-                    new_nodes.add(new_node)
-            previously_parsed_nodes.add(node)
-        self._modules = [heapq.heappop(modules) for _ in range(len(modules))]
+        for file in self.files:
+            if file.suffix == '.py':
+                modules.append(ModuleParser(file, self))
+        return modules
+
+    def get_not_imported_files(self, main_module: Path) -> list[ModuleParser]:
+        """Get list of not imported modules.
+
+        Args:
+            main_module: path to main module to search all unused files.
+
+        Returns:
+            List of modules that were not imported from main module.
+        """
+        next_modules = {ModuleParser(main_module, self)}
+        parsed_modules: set[ModuleParser] = set()
+        while next_modules:
+            current_module = next_modules.pop()
+            parsed_modules.add(current_module)
+            for imported_module in current_module.imported_modules:
+                if imported_module not in parsed_modules:
+                    next_modules.add(imported_module)
+        return [module for module in self.modules if module not in parsed_modules]
 
     @property
     def readme(self) -> ReadmeHandler:
-        """Get readme handler for current project."""
+        """Get readme handler for current project.
+
+        Returns:
+            Readme file handler.
+        """
         return ReadmeHandler(self)
 
     @property
     def libraries(self) -> tuple[list[str], dict[str, list[Distribution]]]:
-        """Get libraries used in the whole project."""
+        """Get libraries used in the whole project.
+
+        Returns:
+            Two values:
+            - list of buil-in libraries names;
+            - dict with installed libraries names and dictributions.
+        """
         return sorted(self._builtin_libraries), dict(sorted(self._installed_libraries.items()))
 
-    def check_docstrings(self) -> None:
+    def check(self) -> None:
         """Провести проверку докстрингов."""
         for module in self.modules:
             module.check_docstrings()
+        error_level_found = False
+        for error in self.errors:
+            if error.level == 'ERROR':
+                error_level_found = True
+            error.show()
+        if error_level_found:
+            sys.exit(1)
+
+    def determine_project_type(self) -> ProjectTypes:
+        """Determine current project type.
+
+        Returns:
+            Current project type.
+        """
+        return ProjectTypes.LIBRARY
