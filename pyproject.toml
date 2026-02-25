@@ -40,6 +40,7 @@ build-backend = 'setuptools.build_meta'
 [tool.setuptools.package-data]
 'fulldoc' = ['py.typed']
 'fulldoc.readme.library_data' = ['.readthedocs.yaml']
+'fulldoc.readme.library_data.docs' = ['index.rst']
 
 [tool.setuptools.package-dir]
 fulldoc = 'fulldoc_local'

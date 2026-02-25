@@ -41,7 +41,8 @@ readme_generator
 │   │   └── library_data
 │   │       ├── .readthedocs.yaml
 │   │       └── docs
-│   │           └── conf.py
+│   │           ├── conf.py
+│   │           └── index.rst
 │   ├── script.py
 │   └── utils.py
 └── pyproject.toml
