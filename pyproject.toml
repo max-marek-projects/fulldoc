@@ -1,6 +1,6 @@
 [project]
 name = 'fulldoc'
-version = '0.0.2.a6'
+version = '0.0.2.a7'
 authors = [
     {name = 'Maksim Ermoshin', email = 'maksim_ermoshin@mail.ru'},
 ]
@@ -9,7 +9,6 @@ readme = 'README.md'
 requires-python = '>=3.14'
 dependencies = [
     'treelib',
-    'tomli',
     'dominate',
     'pandas',
     'tabulate',

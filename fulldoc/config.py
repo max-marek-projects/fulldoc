@@ -53,6 +53,7 @@ class Files(StrEnum):
     README = 'README.md'
     GITIGNORE = '.gitignore'
     TOML = 'pyproject.toml'
+    READ_THE_DOCS_YML = '.readthedocs.yaml'
 
 
 class TermColors:

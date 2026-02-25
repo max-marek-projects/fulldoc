@@ -1,6 +1,8 @@
 """Readme handling."""
 
 import re
+import tomllib
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -9,14 +11,14 @@ from dominate.tags import a, code, pre  # type: ignore[import-untyped]
 from pandas import DataFrame
 from treelib import Tree
 
-from .config import Files
+from ..config import Files
 
 if TYPE_CHECKING:
-    from .project import ProjectParser
+    from ..project import ProjectParser
 
 
 @dataclass
-class ReadmeHandler:
+class ReadmeHandler(ABC):
     """Readme handler.
 
     Attributes:
@@ -69,6 +71,14 @@ class ReadmeHandler:
             readme_text += content
             readme_text += '\n\n'
         return readme_text
+
+    @abstractmethod
+    def get_readme_content(self) -> dict[str, str]:
+        """Get content for readme file with.
+
+        dict with keys - sections title, values - sections content.
+        """
+        ...
 
     @property
     def libraries_table(self) -> str:
@@ -133,3 +143,26 @@ class ReadmeHandler:
         """
         with open(path, 'w') as file:
             file.write(self.text)
+
+    @classmethod
+    def determine(cls, project: 'ProjectParser') -> 'ReadmeHandler':
+        """Determine current project type and get readme handler.
+
+        Args:
+            project: project handler.
+
+        Returns:
+            Suitable readme handler for current project type.
+
+        Raises:
+            NotImplementedError: if project type is not defined.
+        """
+        from .library import LibraryReadmeHandler
+
+        toml_path = Path.cwd() / Files.TOML
+        if toml_path.exists():
+            with open(toml_path, 'rb') as f:
+                toml_data = tomllib.load(f)
+            if 'project' in toml_data:
+                return LibraryReadmeHandler(project)
+        raise NotImplementedError('This type of project if not yet implemented')

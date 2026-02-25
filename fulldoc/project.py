@@ -6,10 +6,10 @@ from dataclasses import dataclass
 from importlib.metadata import Distribution
 from pathlib import Path
 
-from .config import DocstringTypes, ProjectTypes
+from .config import DocstringTypes
 from .logger import logger
 from .parsers.entities import ModuleParser
-from .readme import ReadmeHandler
+from .readme.basic import ReadmeHandler
 from .utils import ErrorData
 
 
@@ -40,7 +40,6 @@ class ProjectParser:
             builtin_libraries, installed_libraries = module.libraries
             self._builtin_libraries.update(builtin_libraries)
             self._installed_libraries.update(installed_libraries)
-        self.determine_project_type()
         self.name = Path.cwd().name
 
     def get_all_files(self) -> list[Path]:
@@ -108,7 +107,7 @@ class ProjectParser:
         Returns:
             Readme file handler.
         """
-        return ReadmeHandler(self)
+        return ReadmeHandler.determine(self)
 
     @property
     def libraries(self) -> tuple[list[str], dict[str, list[Distribution]]]:
@@ -132,11 +131,3 @@ class ProjectParser:
             error.show()
         if error_level_found:
             sys.exit(1)
-
-    def determine_project_type(self) -> ProjectTypes:
-        """Determine current project type.
-
-        Returns:
-            Current project type.
-        """
-        return ProjectTypes.LIBRARY
