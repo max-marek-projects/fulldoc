@@ -12,6 +12,7 @@ from pandas import DataFrame
 from treelib import Tree
 
 from ..config import Files
+from ..logger import get_logger
 
 if TYPE_CHECKING:
     from ..project import ProjectParser
@@ -26,6 +27,10 @@ class ReadmeHandler(ABC):
     """
 
     _project: 'ProjectParser'
+
+    def __post_init__(self) -> None:
+        """Initializa readme handler."""
+        self.logger = get_logger()
 
     @staticmethod
     def href_from_title(title: str) -> str:

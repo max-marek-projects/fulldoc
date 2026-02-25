@@ -41,9 +41,9 @@ class ProjectTypes(StrEnum):
 class LoggerConfig:
     """Logger config params."""
 
-    NAME = 'README-Generator'
+    NAME = 'fulldoc'
     LEVEL = LoggerLevels.INFO
-    FORMAT = '%(name)s %(asctime)s %(levelname)s %(message)s'
+    FORMAT = '%(name)s - %(asctime)s - %(levelname)s - %(message)s'
 
 
 class Files(StrEnum):
@@ -54,6 +54,7 @@ class Files(StrEnum):
     GITIGNORE = '.gitignore'
     TOML = 'pyproject.toml'
     READ_THE_DOCS_YML = '.readthedocs.yaml'
+    SPHINX_CONFIG = 'conf.py'
 
 
 class TermColors:

@@ -7,7 +7,7 @@ from importlib.metadata import Distribution
 from pathlib import Path
 
 from .config import DocstringTypes
-from .logger import logger
+from .logger import get_logger
 from .parsers.entities import ModuleParser
 from .readme.basic import ReadmeHandler
 from .utils import ErrorData
@@ -18,17 +18,14 @@ class ProjectParser:
     """Module used to parse project data.
 
     Attributes:
-        folder: folder path to search files from for current project.
         docstrings_type: type of docstrings in current module.
     """
 
-    folder: Path = Path('.')
     docstrings_type: DocstringTypes = DocstringTypes.GOOGLE
 
     def __post_init__(self) -> None:
         """Initialize project parser."""
-        self.logger = logger
-        self.folder = self.folder.absolute()
+        self.logger = get_logger()
         self._builtin_libraries: set[str] = set()
         self._installed_libraries: dict[str, list[Distribution]] = {}
         self._modules: list[ModuleParser] = []

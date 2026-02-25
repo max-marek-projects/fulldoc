@@ -1,5 +1,4 @@
 WORKDIR = .
-LIBRARY_FOLDER = $(WORKDIR)/docsrtings_parser
 
 style:
 	isort $(WORKDIR)
@@ -8,5 +7,5 @@ style:
 	mypy $(WORKDIR)
 
 readme:
-	pip install .
-	generate-readme --folder $(LIBRARY_FOLDER)
+	pip install . -U
+	fulldoc

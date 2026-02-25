@@ -26,17 +26,23 @@ style = [
     'mypy',
     'pandas-stubs',
 ]
+doc = [
+    'sphinx-pyproject',
+]
 
 [project.scripts]
-generate-readme = 'docstrings_parser.scripts.generate:generate_readme'
-check-docstrings = 'docstrings_parser.scripts.check_docstrings:check_docstrings'
+fulldoc = 'fulldoc.script:fulldoc'
 
 [build-system]
 requires = ['setuptools']
 build-backend = 'setuptools.build_meta'
 
 [tool.setuptools.package-data]
-'readme_generator' = ['py.typed']
+'fulldoc' = ['py.typed']
+'fulldoc.readme.library_data' = ['.readthedocs.yaml']
+
+[tool.setuptools.package-dir]
+fulldoc = 'fulldoc_local'
 
 [tool.isort]
 profile = 'black'

@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar, final
 
 from ..config import ArgumentTypes, ErrorLevels
 from ..exceptions import LogicError, WrongValueError
-from ..logger import logger
+from ..logger import get_logger
 from ..utils import PACKAGES, ArgumentData, AttributeData, ErrorData, Singleton
 from .docstrings import DocstringParser
 
@@ -50,13 +50,14 @@ class EntityParser(Generic[EntityData], ABC, metaclass=Singleton):
 
     def __post_init__(self) -> None:
         """Initialize python entity parser."""
-        self._logger = logger
+        self.logger = get_logger()
         self._classes: list['ClassParser'] = []
         self._functions: list['_FunctionParser'] = []
         self._attributes: list[AttributeData] = []
 
     def parse(self) -> None:
         """Parse all nodes."""
+        self.logger.info(f'Parsing {self.full_name}')
         node_parsers = self.node_parsers
         for node in self.walk():
             parser = node_parsers.get(type(node))
@@ -233,6 +234,7 @@ class EntityParser(Generic[EntityData], ABC, metaclass=Singleton):
 
     def check_docstrings(self) -> None:
         """Check current docstring and docstrings of each child entity."""
+        self.logger.info(f'Checking documentation for {self.full_name}')
         self.validate_docstring(self.docstring)
         entities: list[EntityParser] = [*self.functions, *self.classes]
         for entity in sorted(entities, key=lambda item: item.start_line_number):
@@ -314,7 +316,21 @@ class EntityParser(Generic[EntityData], ABC, metaclass=Singleton):
         Returns:
             Entity type with its full name.
         """
-        return f'{self.TITLE} "{self.name}"'
+        return f'{self.TITLE} "{self.full_name}"'
+
+    @property
+    def full_name(self) -> str:
+        """Get full name for current entity.
+
+        Returns:
+            current entity name with all its parent entity names joined with dots.
+        """
+        full_name_parts: list[str] = []
+        current_item: EntityParser | None = self
+        while current_item:
+            full_name_parts.append(current_item.name)
+            current_item = current_item._parent
+        return '.'.join(reversed(full_name_parts))
 
     def __hash__(self) -> int:
         """Get hash of current object.
@@ -711,15 +727,6 @@ class ModuleParser(EntityParser[ast.Module]):
             super().__init__(ast.parse(self._source_code), None, project)
 
     @property
-    def name(self) -> str:
-        """Get module name.
-
-        Returns:
-            Module name based on module path.
-        """
-        return str(self.path.relative_to(Path.cwd()))
-
-    @property
     def start_line_number(self) -> int:
         """Start code row number.
 
@@ -744,7 +751,7 @@ class ModuleParser(EntityParser[ast.Module]):
             objects: imported objects (used in case of whole imported module).
         """
         try:
-            module_spec = find_spec('.' * level + module_name, package=self.package_name)
+            module_spec = find_spec('.' * level + module_name, package=self.name)
         except ModuleNotFoundError:
             self.save_error(
                 f'Module named "{module_name}" not found',
@@ -833,7 +840,7 @@ class ModuleParser(EntityParser[ast.Module]):
         return self._path < other._path
 
     @property
-    def package_name(self) -> str:
+    def name(self) -> str:
         """Get current module import name.
 
         Returns:
