@@ -1,68 +1,156 @@
-# readme_generator
+# fulldoc
 
-## Content
+`fulldoc` is a Python docstring content checker focused on completeness and consistency.
 
-<code>
-  <a href="#1-tree">1. Tree</a>
-  <a href="#2-libraries">2. Libraries</a>
-</code>
+It validates that docstrings are not only present, but also contain the required structured content for your public and internal API.
 
-## 1. Tree
+## What it checks
 
-<pre>
-readme_generator
-├── .github
-│   ├── scripts
-│   │   └── parse_versions.py
-│   └── workflows
-│       ├── lint_build.yml
-│       └── publish.yml
-├── .gitignore
-├── .readthedocs.yaml
-├── Makefile
-├── README.md
-├── debug.py
-├── docs
-│   └── conf.py
-├── fulldoc_local
-│   ├── __init__.py
-│   ├── config.py
-│   ├── exceptions.py
-│   ├── logger.py
-│   ├── parsers
-│   │   ├── __init__.py
-│   │   ├── docstrings.py
-│   │   └── entities.py
-│   ├── project.py
-│   ├── py.typed
-│   ├── readme
-│   │   ├── basic.py
-│   │   ├── library.py
-│   │   └── library_data
-│   │       ├── .readthedocs.yaml
-│   │       └── docs
-│   │           ├── conf.py
-│   │           └── index.rst
-│   ├── script.py
-│   └── utils.py
-└── pyproject.toml
+`fulldoc` enforces:
 
-</pre>
+- full argument documentation for all callable parameters, even when no `Args` / `Attributes` section is present
+- `Attributes` section validation for classes and data containers
+- docstrings for private and protected entities, so internal APIs are documented for other developers
 
-## 2. Libraries
+## Supported docstring styles
 
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>Built in</th>
-      <th>Installed</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><table class="dataframe"><thead><tr style="text-align: right;"><th>Name</th></tr></thead><tbody><tr><td>abc</td></tr><tr><td>argparse</td></tr><tr><td>ast</td></tr><tr><td>collections</td></tr><tr><td>dataclasses</td></tr><tr><td>enum</td></tr><tr><td>importlib</td></tr><tr><td>inspect</td></tr><tr><td>json</td></tr><tr><td>logging</td></tr><tr><td>os</td></tr><tr><td>pathlib</td></tr><tr><td>re</td></tr><tr><td>shutil</td></tr><tr><td>subprocess</td></tr><tr><td>sys</td></tr><tr><td>textwrap</td></tr><tr><td>tomllib</td></tr><tr><td>typing</td></tr></tbody></table></td>
-      <td><table class="dataframe"><thead><tr style="text-align: right;"><th>Name</th><th>Version</th></tr></thead><tbody><tr><td>dominate</td><td>2.9.1</td></tr><tr><td>pandas</td><td>3.0.1</td></tr><tr><td>sphinx-pyproject</td><td>0.3.0</td></tr><tr><td>treelib</td><td>1.8.0</td></tr></tbody></table></td>
-    </tr>
-  </tbody>
-</table>
+- `Google`
+- `reStructuredText`
 
+## What makes `fulldoc` different
+
+Most docstring tools only check whether a docstring exists.
+
+`fulldoc` checks whether the docstring is actually complete.
+
+That includes:
+
+- required parameter descriptions
+- attribute documentation
+- internal API documentation
+- consistent parsing of common docstring formats
+
+## Requirements
+
+`fulldoc` is designed for Python projects that want stricter documentation standards.
+
+It is especially useful when you want to enforce documentation for:
+
+- public functions and classes
+- protected members
+- private members
+- dataclasses and other attribute-heavy classes
+- library code maintained by multiple developers
+
+## Status codes
+
+`fulldoc` reports findings using status codes.
+
+### Main status groups
+
+- `D` — docstring structure or content issue
+- `DOC` — missing, incomplete, or invalid documentation
+- `N` — naming or entity-related issue
+- `F` — parser or formatting support code used for internal parsing only
+
+### Example meanings
+
+| Code | Meaning |
+|------|---------|
+| `D...` | documentation rule violation |
+| `DOC...` | docstring content problem |
+| `N...` | naming or entity classification issue |
+| `F...` | parsing helper / internal formatting-related code |
+
+> Exact code meanings depend on the rule set configured in your project.
+
+## Installation
+
+```bash
+pip install fulldoc
+```
+
+## Usage
+
+Run `fulldoc` against your project source tree from the root directory:
+
+```bash
+fulldoc
+```
+
+Or integrate it into your CI pipeline:
+
+```yml
+- name: Check docstrings
+  run: fulldoc .
+```
+
+Or you can help debug library errors running it from python file:
+
+```python
+from fulldoc import ProjectParser
+
+ProjectParser().check()
+```
+
+## Rules enforced by `fulldoc`
+
+### Arguments
+
+All callable arguments must be documented.
+
+This includes cases where:
+
+- the docstring has no `Args` / `Attributes` section
+- the section exists but is incomplete
+- some parameters are documented and others are missing
+
+### Attributes
+
+Class attributes are checked against the docstring `Attributes` section.
+
+`fulldoc` can detect missing documentation for class state and related fields.
+
+### Private and protected members
+
+`fulldoc` can require docstrings for internal APIs such as:
+
+- protected members like `_name`
+- private members like `__name`
+
+This helps teams keep internal code understandable and maintainable.
+
+## Examples
+
+### Google style
+
+```python
+def add_user(name: str, age: int) -> None:
+    """Add a user.
+
+    Args:
+        name: User name.
+        age: User age.
+    """
+```
+
+### reStructuredText style
+
+```python
+def add_user(name: str, age: int) -> None:
+    """Add a user.
+
+    :param name: User name.
+    :param age: User age.
+    """
+```
+
+## Notes
+
+- `fulldoc` is strict by design.
+- It is intended for teams that want documentation quality checks, not just docstring presence checks.
+- Internal and protected code can be included in the documentation policy.
+
+## License
+
+MIT
