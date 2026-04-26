@@ -1,7 +1,9 @@
 [project]
 name = 'fulldoc'
-version = '0.0.2.a8'
-authors = [{ name = 'Maksim Ermoshin', email = 'maksim_ermoshin@mail.ru' }]
+version = '0.0.1.b1'
+authors = [
+    { name = 'Maksim Ermoshin', email = 'maksim.ermoshin2000@gmail.com' },
+]
 description = 'Library for automatic docstrings check'
 readme = 'README.md'
 requires-python = '>=3.14'
