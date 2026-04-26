@@ -17,7 +17,7 @@ jobs:
       - name: Install uv and Python
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.x"
+          python-version: "3.14"
           enable-cache: true
 
       - name: Build release distributions
