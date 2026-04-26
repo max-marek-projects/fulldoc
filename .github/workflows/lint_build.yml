@@ -47,9 +47,6 @@ jobs:
     needs: [ "parse-versions", "lint" ]
     if: needs.parse-versions.outputs.build-enabled == 'true'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ${{ fromJson(needs.parse-versions.outputs.python-versions) }}
 
     steps:
       - uses: actions/checkout@v6
@@ -57,7 +54,7 @@ jobs:
       - name: Install uv and set Python ${{ matrix.python-version }}
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.x"
           enable-cache: true
 
       - name: Build package
@@ -66,8 +63,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: library-dist-${{ needs.parse-versions.outputs.library-version }}-py${{
-            matrix.python-version }}
+          name: release-dists
           path: dist/
 
   publish-testpypi:
