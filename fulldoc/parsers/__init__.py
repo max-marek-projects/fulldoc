@@ -6,4 +6,4 @@ from .docstrings import (
     ReSTDocstringParser,
 )
 
-__all__ = ('DocstringParser', 'GoogleDocstringParser', 'ReSTDocstringParser')
+__all__ = ("DocstringParser", "GoogleDocstringParser", "ReSTDocstringParser")

@@ -1,4 +1,4 @@
-"""Логирование генерации ридми-файла."""
+"""Library logging."""
 
 from logging import Formatter, Logger, StreamHandler, getLogger
 
@@ -14,10 +14,10 @@ def get_logger() -> Logger:
     logger = getLogger(LoggerConfig.NAME)
     if logger.handlers:
         return logger
-    logger.setLevel(LoggerLevels.DEBUG)
+    logger.setLevel(LoggerLevels.INFO)
     formatter = Formatter(LoggerConfig.FORMAT)
     handler = StreamHandler()
-    handler.setLevel(LoggerLevels.DEBUG)
+    handler.setLevel(LoggerLevels.INFO)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger

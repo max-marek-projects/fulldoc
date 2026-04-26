@@ -122,7 +122,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Папки, создаваемые средой разработки
+# IDE
 .idea
 .DS_Store
 .AppleDouble

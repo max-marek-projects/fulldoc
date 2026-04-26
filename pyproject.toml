@@ -1,34 +1,21 @@
 [project]
 name = 'fulldoc'
-version = '0.0.2.a7'
-authors = [
-    {name = 'Maksim Ermoshin', email = 'maksim_ermoshin@mail.ru'},
-]
-description = 'Library for automatic docstrings check and readme generation'
+version = '0.0.2.a8'
+authors = [{ name = 'Maksim Ermoshin', email = 'maksim_ermoshin@mail.ru' }]
+description = 'Library for automatic docstrings check'
 readme = 'README.md'
 requires-python = '>=3.14'
 dependencies = [
-    'treelib',
-    'dominate',
-    'pandas',
-    'tabulate',
+    "dominate>=2.9.1",
+    "gitpython>=3.1.47",
+    "pandas>=3.0.2",
+    "tabulate>=0.10.0",
+    "treelib>=1.8.0",
 ]
+
 [project.optional-dependencies]
-style = [
-    'black',
-    'flake8',
-    'flake8-commas',
-    'flake8-docstrings',
-    'flake8-print',
-    'flake8-pyproject',
-    'flake8-quotes',
-    'isort',
-    'mypy',
-    'pandas-stubs',
-]
-doc = [
-    'sphinx-pyproject',
-]
+lint = ["mypy>=1.20.2", "pandas-stubs>=3.0.0.260204", "ruff>=0.15.12"]
+doc = ["sphinx-pyproject>=0.3.0"]
 
 [project.scripts]
 fulldoc = 'fulldoc.script:fulldoc'
@@ -39,30 +26,59 @@ build-backend = 'setuptools.build_meta'
 
 [tool.setuptools.package-data]
 'fulldoc' = ['py.typed']
-'fulldoc.readme.library_data' = ['.readthedocs.yaml']
-'fulldoc.readme.library_data.docs' = ['index.rst']
 
-[tool.setuptools.package-dir]
-fulldoc = 'fulldoc_local'
-
-[tool.isort]
-profile = 'black'
-line_length = 120
-
-[tool.black]
+[tool.ruff]
 line-length = 120
-skip-string-normalization = true
+target-version = "py314"
+unsafe-fixes = true
+exclude = ['tests/']
 
-[tool.flake8]
-ignore = ['W503']
-exclude = ['venv/', 'env/', 'temp/', 'build/']
-per-file-ignores = [
-    '.github/scripts/*: T201',
+[tool.ruff.lint]
+preview = true
+select = [
+    "ANN", # type annotations
+    "B",   # potential bugs
+    "S",   # potential vulnerabilities
+    "E",   # pycodestyle errors
+    "I",   # sort imports
+    "F",   # pyflakes errors
+    "COM", # commas
+    "T2",  # print
+    "DOC", # docstring content
+    "D",   # docstring
+    "UP",  # update imports and code style according to python version
+    "Q",   # quotes
+    "C9",  # complexity
+    "C4",  # comprehensions
+    "RUF", # ruff special codes
+    "PTH", # use pathlib instead of os
+    "PD",  # pandas
+    "N",   # naming convention
 ]
-max-line-length = 120
-max-complexity = 15
+fixable = ["ALL"]
+ignore = [
+    "D413",   # blank line after last docstring section
+    "COM812", # missing trailing comma
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 18
+
 
 [tool.mypy]
-python_version = '3.14'
-exclude = ['venv', 'temp', 'build']
 disallow_untyped_defs = true
+disallow_any_explicit = true
+disallow_untyped_decorators = true
+enable_error_code = ['deprecated']
+exclude = ["build/"]

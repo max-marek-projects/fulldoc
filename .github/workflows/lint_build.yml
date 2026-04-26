@@ -3,7 +3,7 @@ name: Lint and build python library
 on:
   push:
     branches:
-      - '**'
+      - "**"
 
 jobs:
 
@@ -18,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'  # only for parsing pyproject.toml
+          python-version: "3.11" # only for parsing pyproject.toml
       - name: Run version parser
         id: run
         run: python .github/scripts/parse_versions.py
@@ -32,53 +32,40 @@ jobs:
       matrix:
         python-version: ${{ fromJson(needs.parse-versions.outputs.python-versions) }}
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Upgrade pip
-      run: python -m pip install --upgrade pip
-    - name: Install dependencies
-      run: pip install .[style]
-    - name: Check imports formatting
-      run: isort --check --diff .
-    - name: Check code formatting
-      run: |
-        black --check --diff .
-        flake8 .
-    - name: Check code logic
-      run: mypy .
+      - uses: actions/checkout@v6
+      - name: Install uv and set the Python version
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: make req-dev
 
+      - name: Run linters
+        run: make lint
 
   build:
-    needs: ["parse-versions", "lint"]
+    needs: [ "parse-versions", "lint" ]
     if: needs.parse-versions.outputs.build-enabled == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ${{ fromJson(needs.parse-versions.outputs.python-versions) }}
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Upgrade pip
-      run: python -m pip install --upgrade pip
-    - name: Install build tools
-      run: pip install build
-    - name: Build package
-      run: python -m build
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: library-dist-${{ needs.parse-versions.outputs.library-version }}-py${{ matrix.python-version }}
-        path: dist/
-    - name: Publish to TestPyPi
-      run: |
-        pip install twine
-        python3 -m twine upload -r testpypi dist/*
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      - uses: actions/checkout@v6
+
+      - name: Install uv and set Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Build package
+        run: uv build --no-sources
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-dist-${{ needs.parse-versions.outputs.library-version }}-py${{
+            matrix.python-version }}
+          path: dist/
