@@ -109,7 +109,7 @@ def main() -> None:
     toml_parser = TomlParser("pyproject.toml")
     branch = os.environ.get("GITHUB_REF_NAME", "")
     prerelease = toml_parser.is_prerelease
-    if branch == "main":
+    if branch == "master":
         if prerelease:
             sys.exit(1)
         else:
