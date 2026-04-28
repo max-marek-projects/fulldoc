@@ -18,7 +18,7 @@ req-dev:
 	uv sync --extra lint,doc
 
 SPHINXBUILD   = sphinx-build
-SOURCEDIR     = .
+SOURCEDIR     = docs
 BUILDDIR      = _build
 
 html:

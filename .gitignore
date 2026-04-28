@@ -142,3 +142,4 @@ dmypy.json
 
 # Data
 temp/
+_build/
