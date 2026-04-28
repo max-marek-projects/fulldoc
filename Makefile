@@ -22,7 +22,7 @@ SOURCEDIR     = docs
 BUILDDIR      = _build
 
 html:
-	$(SPHINXBUILD) -b html $(SOURCEDIR) $(BUILDDIR)/html
+	uv run $(SPHINXBUILD) -b html $(SOURCEDIR) $(BUILDDIR)/html
 
 clean:
 	rm -rf $(BUILDDIR)
