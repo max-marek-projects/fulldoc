@@ -1,5 +1,7 @@
 """Additional functionality."""
 
+from __future__ import annotations
+
 import ast
 import importlib.metadata
 import re
