@@ -46,7 +46,7 @@ wheels = [
 
 [[package]]
 name = "fulldoc"
-version = "0.0.2a8"
+version = "0.0.1b3"
 source = { editable = "." }
 dependencies = [
     { name = "dominate" },
