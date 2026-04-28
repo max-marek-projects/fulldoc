@@ -58,7 +58,7 @@ jobs:
 
   build:
     needs: [ "parse-versions", "docs" ]
-    if: needs.parse-versions.outputs.build-enabled == 'true'
+    # if: needs.parse-versions.outputs.build-enabled == 'true'
     runs-on: ubuntu-latest
 
     steps:
