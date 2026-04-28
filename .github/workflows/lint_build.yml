@@ -18,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - name: Run version parser
         id: run
         run: python .github/scripts/parse_versions.py
@@ -44,23 +44,20 @@ jobs:
         run: make lint
 
   docs:
+    needs: lint
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v6
-
       - uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.12"
-
+          python-version: "3.14"
       - name: Install dependencies
         run: make req-dev
-
       - name: Build docs
         run: make html
 
   build:
-    needs: [ "parse-versions", "lint" ]
+    needs: [ "parse-versions", "docs" ]
     if: needs.parse-versions.outputs.build-enabled == 'true'
     runs-on: ubuntu-latest
 
@@ -70,7 +67,7 @@ jobs:
       - name: Install uv and set Python ${{ matrix.python-version }}
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           enable-cache: true
 
       - name: Build package
