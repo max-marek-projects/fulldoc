@@ -273,7 +273,7 @@ class GoogleDocstringParser(DocstringParser):
             re.MULTILINE,
         ),
         arg=re.compile(
-            r"(?P<name>\**\w+?)(?: *\((?P<type>.+?)?\))?(?:[ ]*:[ ]*)(?P<description>[\s\S]*?)(?=\n\S|\z)",
+            r"(?P<name>\**\w+?)(?: *\((?P<type>.+?)?\))?(?:[ ]*:[ ]*)(?P<description>[\s\S]*?)(?=\n\S|\Z)",
             re.DOTALL | re.MULTILINE,
         ),
         raises=re.compile(
