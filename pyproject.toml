@@ -1,65 +1,86 @@
 [project]
-name = 'readme-generator'
-version = '0.0.0'
+name = 'fulldoc'
+version = '0.0.1'
 authors = [
-    {name = 'Maksim Ermoshin', email = 'maksim_ermoshin@mail.ru'},
+    { name = 'Maksim Ermoshin', email = 'maksim.ermoshin2000@gmail.com' },
 ]
-description = 'Library for automatic readme generation and docstrings check'
+description = 'Library for automatic docstrings check'
 readme = 'README.md'
-requires-python = '>=3.10'
+requires-python = '>=3.14'
 dependencies = [
-    'importlib_metadata',
-    'pandas',
-    'setuptools',
-    'requests',
-    'tabulate',
-    'asttokens',
-    'typing-extensions',
-    'python-dotenv',
-    'flake8',
-    'flake8-docstrings',
-]
-[project.optional-dependencies]
-style = [
-    'black==25.1.0',
-    'flake8==7.2.0',
-    'flake8-commas==4.0.0',
-    'flake8-docstrings==1.7.0',
-    'flake8-print==5.0.0',
-    'flake8-pyproject==1.2.3',
-    'flake8-quotes==3.4.0',
-    'isort==6.0.1',
-    'mypy==1.16.1',
-    'pandas-stubs==2.0.1.230501',
-    'types-requests==2.32.4.20250611',
-    'types-setuptools==80.9.0.20250529',
+    "dominate>=2.9.1",
+    "gitpython>=3.1.47",
+    "pandas>=3.0.2",
+    "tabulate>=0.10.0",
+    "treelib>=1.8.0",
 ]
 
+[project.optional-dependencies]
+lint = ["mypy>=1.20.2", "pandas-stubs>=3.0.0.260204", "ruff>=0.15.12"]
+doc = ["furo>=2025.12.19", "sphinx>=9.1.0", "sphinx-pyproject>=0.3.0"]
+
 [project.scripts]
-generate-readme = 'readme_generator.scripts.generate:generate_readme'
+fulldoc = 'fulldoc.script:fulldoc'
 
 [build-system]
 requires = ['setuptools']
 build-backend = 'setuptools.build_meta'
 
 [tool.setuptools.package-data]
-'readme_generator' = ['py.typed']
+'fulldoc' = ['py.typed']
 
-[tool.isort]
-profile = 'black'
-line_length = 120
-
-[tool.black]
+[tool.ruff]
 line-length = 120
-skip-string-normalization = true
+target-version = "py314"
+unsafe-fixes = true
+exclude = ['tests/']
 
-[tool.flake8]
-ignore = []
-exclude = ['venv/', 'env/', 'temp/']
-max-line-length = 120
+[tool.ruff.lint]
+preview = true
+select = [
+    "ANN", # type annotations
+    "B",   # potential bugs
+    "S",   # potential vulnerabilities
+    "E",   # pycodestyle errors
+    "I",   # sort imports
+    "F",   # pyflakes errors
+    "COM", # commas
+    "T2",  # print
+    "DOC", # docstring content
+    "D",   # docstring
+    "UP",  # update imports and code style according to python version
+    "Q",   # quotes
+    "C9",  # complexity
+    "C4",  # comprehensions
+    "RUF", # ruff special codes
+    "PTH", # use pathlib instead of os
+    "PD",  # pandas
+    "N",   # naming convention
+]
+fixable = ["ALL"]
+ignore = [
+    "D413",   # blank line after last docstring section
+    "COM812", # missing trailing comma
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 18
+
 
 [tool.mypy]
-python_version = '3.10'
-exclude = ['venv', 'temp']
-explicit_package_bases = true
 disallow_untyped_defs = true
+disallow_any_explicit = true
+disallow_untyped_decorators = true
+enable_error_code = ['deprecated']
+exclude = ["build/"]
