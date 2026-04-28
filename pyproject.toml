@@ -1,6 +1,6 @@
 [project]
 name = 'fulldoc'
-version = '0.0.1'
+version = '0.0.2.b1'
 authors = [
     { name = 'Maksim Ermoshin', email = 'maksim.ermoshin2000@gmail.com' },
 ]

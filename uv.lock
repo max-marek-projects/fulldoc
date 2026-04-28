@@ -157,7 +157,7 @@ wheels = [
 
 [[package]]
 name = "fulldoc"
-version = "0.0.1b3"
+version = "0.0.2b1"
 source = { editable = "." }
 dependencies = [
     { name = "dominate" },
