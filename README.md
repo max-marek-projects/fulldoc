@@ -55,12 +55,12 @@ It is especially useful when you want to enforce documentation for:
 
 ### Example meanings
 
-| Code | Meaning |
-|------|---------|
-| `D...` | documentation rule violation |
-| `DOC...` | docstring content problem |
-| `N...` | naming or entity classification issue |
-| `F...` | parsing helper / internal formatting-related code |
+| Code     | Meaning                                           |
+|----------|---------------------------------------------------|
+| `D...`   | documentation rule violation                      |
+| `DOC...` | docstring content problem                         |
+| `N...`   | naming or entity classification issue             |
+| `F...`   | parsing helper / internal formatting-related code |
 
 > Exact code meanings depend on the rule set configured in your project.
 
@@ -82,7 +82,7 @@ Or integrate it into your CI pipeline:
 
 ```yml
 - name: Check docstrings
-  run: fulldoc .
+  run: fulldoc
 ```
 
 Or you can help debug library errors running it from python file:

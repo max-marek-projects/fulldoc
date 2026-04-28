@@ -1,24 +1,32 @@
-Welcome to My Project's Documentation!
-======================================
+.. docs/index.rst
 
-.. note::
-   This project is under active development.
+fulldoc documentation
+=====================
 
-**My Project** is a Python library for doing cool things.
+fulldoc is a strict Python docstring validator for teams that care about complete internal and public documentation.
 
-Contents
---------
+It validates:
+
+* full parameter documentation
+* Attributes sections
+* private and protected entities
+* Google and reStructuredText docstrings
+* internal consistency of structured docstrings
 
 .. toctree::
    :maxdepth: 2
+   :caption: User Guide
 
    installation
-   usage
+   quickstart
+   rules
+   status-codes
+   examples
    api
    contributing
 
 Indices and tables
-------------------
+==================
 
 * :ref:`genindex`
 * :ref:`modindex`
