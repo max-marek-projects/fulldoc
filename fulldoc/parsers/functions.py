@@ -136,7 +136,7 @@ class FunctionParserBasic(EntityNameParser[ast.FunctionDef | ast.AsyncFunctionDe
                 ArgumentData(
                     optional_argument.arg,
                     optional_argument.type_comment,
-                    self.get_source_segment(default),
+                    "",
                     kind=argument_type,
                 ),
             )

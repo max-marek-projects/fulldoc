@@ -68,6 +68,7 @@ It is especially useful when you want to enforce documentation for:
 
 ```bash
 pip install fulldoc
+uv add fulldoc --optional lint
 ```
 
 ## Usage

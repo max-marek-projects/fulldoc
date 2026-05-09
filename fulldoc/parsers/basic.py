@@ -197,10 +197,13 @@ class EntityParser[EntityData: ast.ClassDef | ast.FunctionDef | ast.AsyncFunctio
         Raises:
             WrongValueError: if received wrong ast node.
         """
-        from .functions import FunctionParser
+        from .functions import FunctionParser, ProtectedFunctionParser
 
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             raise WrongValueError("Wrong ast node received")
+        if node.name.startswith("_"):
+            self._entities.append(ProtectedFunctionParser(node, self))
+            return
         self._entities.append(FunctionParser(node, self))
 
     def _parse_assign(self, node: ast.AST) -> None:

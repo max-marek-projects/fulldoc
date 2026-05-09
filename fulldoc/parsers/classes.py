@@ -31,12 +31,13 @@ class ClassParserBasic(EntityNameParser[ast.ClassDef], ABC):
         for attribute in self.attributes:
             if (
                 not attrs_data.pop(attribute.name, None)
-                and not Validation.check_upper_snake_case(attribute.name)
-                and not attribute.name.startswith("_")
+                and not self.is_typeddict  # allow missing attributes definitions in typeddict
+                and not Validation.check_upper_snake_case(attribute.name)  # allow missing constants
+                and not attribute.name.startswith("_")  # do not require private attributes
                 and not (
                     isinstance(attribute.annotation, ast.Subscript)
                     and isinstance(attribute.annotation.value, ast.Name)
-                    and attribute.annotation.value.id == "InitVar"
+                    and attribute.annotation.value.id == "InitVar"  # allow missing InitVars
                 )
             ):
                 self.save_error(
@@ -94,6 +95,20 @@ class ClassParserBasic(EntityNameParser[ast.ClassDef], ABC):
             self._entities.append(ProtectedNestedClassParser(node, self))
             return
         self._entities.append(NestedClassParser(node, self))
+
+    @property
+    def is_typeddict(self) -> bool:
+        """Check if current class is typeddict definition.
+
+        Returns:
+            True if it is typeddict definition.
+        """
+        for base in self.data.bases:
+            if isinstance(base, ast.Name) and base.id == "TypedDict":
+                return True
+            if isinstance(base, ast.Attribute) and base.attr == "TypedDict":
+                return True
+        return False
 
 
 @final
